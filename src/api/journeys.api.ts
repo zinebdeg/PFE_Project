@@ -20,11 +20,11 @@ export async function fetchJourneys(params: {
 }): Promise<JourneySearchResult> {
   return apiRequest<JourneySearchResult>('/journeys', {
     params: {
-      'departure-city-id': params.departureCityId,
-      'arrival-city-id': params.arrivalCityId,
+      departureCityId: params.departureCityId,
+      arrivalCityId: params.arrivalCityId,
       date: params.date,
-      'nbr-of-passengers': params.nbrOfPassengers,
-      'previous-search-id': params.previousSearchId,
+      nbrOfPassengers: params.nbrOfPassengers,
+      searchId: params.previousSearchId,
     },
   });
 }
