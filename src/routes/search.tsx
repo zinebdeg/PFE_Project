@@ -8,6 +8,7 @@ import { Search, AlertCircle, Calendar, MapPin, Filter } from 'lucide-react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import type { Journey, City } from '../api/types';
+import SearchForm from '../components/search/search-form';
 
 export const Route = createFileRoute('/search')({
   validateSearch: (search: Record<string, unknown>) => {
@@ -41,54 +42,27 @@ function SearchResults() {
   const toCity = cities?.find((c: City) => c.id === arrivalCityId)?.name;
 
   return (
-    <main className="min-h-screen pt-10 pb-20 bg-gray-light/30">
+    <main className="min-h-screen pt-10 pb-20 bg-[#f4f7fc]">
       <div className="container-app">
-        {/* Search header info */}
-        <div className="bg-white p-6 rounded-2xl border border-gray-border shadow-sm mb-8 flex flex-col md:flex-row md:items-center justify-between gap-6 rise-in">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
-              <Search size={24} />
-            </div>
-            <div className="flex flex-col text-dark">
-              <h1 className="text-xl font-black flex items-center gap-2">
-                {fromCity} <span className="text-gray-body font-medium">→</span> {toCity}
-              </h1>
-              <div className="flex items-center gap-4 mt-1 text-xs text-gray-body font-bold uppercase tracking-wide">
-                <span className="flex items-center gap-1"><Calendar size={14} /> {date ? format(new Date(date), 'dd MMMM yyyy', { locale: fr }) : ''}</span>
-                <span className="flex items-center gap-1"><MapPin size={14} /> {results?.journeys?.length || 0} trajets trouvés</span>
-              </div>
-            </div>
-          </div>
-          
-          <button className="flex items-center gap-2 px-6 py-3 border border-gray-border rounded-xl text-sm font-bold text-dark hover:bg-gray-light transition-colors">
-            <Filter size={18} />
-            Filtrer
-          </button>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-          {/* Filters sidebar - Placeholder */}
-          <div className="hidden md:block col-span-1">
-            <div className="bg-white p-6 rounded-2xl border border-gray-border shadow-sm sticky top-24">
-              <h3 className="text-sm font-black text-dark uppercase tracking-widest mb-6">Filtres</h3>
-              {/* Mock filter categories */}
-              <div className="space-y-6">
-                <div>
-                  <label className="text-xs font-bold text-gray-body uppercase mb-3 block">Heure de départ</label>
-                  <div className="space-y-2">
-                    {['Matin', 'Après-midi', 'Soir'].map((t: string) => (
-                      <label key={t} className="flex items-center gap-3 text-sm font-medium text-dark cursor-pointer">
-                        <input type="checkbox" className="w-4 h-4 rounded border-gray-border text-primary" /> {t}
-                      </label>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-start">
+          {/* Sidebar */}
+          <div className="md:col-span-4 lg:col-span-3 sticky top-24">
+            <SearchForm 
+              initialFromId={departureCityId}
+              initialToId={arrivalCityId}
+              initialDate={date}
+              initialPassengers={nbrOfPassengers}
+            />
           </div>
 
           {/* Results list */}
-          <div className="col-span-1 md:col-span-3">
+          <div className="md:col-span-8 lg:col-span-9">
+            <div className="mb-6">
+              <h2 className="text-[14px] font-bold text-gray-500">
+                {results?.journeys?.length || 0} résultats
+              </h2>
+            </div>
+            
             {isLoading ? (
               <div className="space-y-4">
                 {[1, 2, 3].map((i: number) => (
@@ -105,14 +79,14 @@ function SearchResults() {
                 ))}
               </div>
             ) : error ? (
-              <div className="bg-white p-12 rounded-2xl border border-gray-border text-center shadow-lg">
+              <div className="bg-white p-12 rounded-2xl border border-gray-border text-center shadow-sm">
                 <AlertCircle size={48} className="text-red mx-auto mb-4" />
                 <h2 className="text-xl font-bold text-dark mb-2">Une erreur est survenue</h2>
                 <p className="text-gray-body mb-6">Impossible de charger les trajets pour le moment.</p>
                 <Button onClick={() => refetch()} variant="outline">Réessayer</Button>
               </div>
             ) : results?.journeys?.length === 0 ? (
-              <div className="bg-white p-12 rounded-2xl border border-gray-border text-center shadow-lg rise-in">
+              <div className="bg-white p-12 rounded-2xl border border-gray-border text-center shadow-sm rise-in">
                 <Search size={48} className="text-gray-body/50 mx-auto mb-4" />
                 <h2 className="text-xl font-bold text-dark mb-2">Aucun trajet trouvé</h2>
                 <p className="text-gray-body mb-6">Essayez une autre date ou d'autres villes de départ/arrivée.</p>
@@ -121,7 +95,7 @@ function SearchResults() {
                 </Link>
               </div>
             ) : (
-              <div className="fade-in">
+              <div className="fade-in space-y-4">
                 {results?.journeys?.map((journey: Journey) => (
                   <JourneyCard 
                     key={journey.id} 

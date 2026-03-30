@@ -1,90 +1,70 @@
 import type { Journey } from '../../api/types';
 import { Button } from '../ui/button';
-import { Clock, MapPin, Bus, Wifi, Zap, User, ChevronRight } from 'lucide-react';
+import { Clock, User, ChevronRight, Wifi, Snowflake, Briefcase, Frame } from 'lucide-react';
 import { Link } from '@tanstack/react-router';
 
 export default function JourneyCard({ journey, searchId }: { journey: Journey; searchId: string }) {
   return (
-    <div className="bg-white border border-gray-border rounded-2xl overflow-hidden hover:shadow-lg transition-all p-4 md:p-6 mb-4 flex flex-col md:flex-row gap-6 group">
-      {/* Company & Bus Info */}
-      <div className="md:w-48 flex flex-col items-center justify-center shrink-0">
-        <div className="w-16 h-16 rounded-xl bg-gray-light flex items-center justify-center mb-3">
-          <img src={journey.company.logo} alt={journey.company.name} className="max-w-[80%]" />
-        </div>
-        <span className="text-sm font-bold text-dark text-center">{journey.company.name}</span>
-        <div className="flex items-center gap-1 mt-2 text-[10px] text-gray-body font-bold uppercase tracking-wide">
-          <Bus size={12} />
-          {journey.bus.name}
-        </div>
-      </div>
-
-      {/* Journey details */}
-      <div className="flex-1 flex flex-col justify-between">
-        <div className="flex items-center justify-between gap-4">
-          {/* Departure */}
-          <div className="flex flex-col">
-            <span className="text-2xl font-black text-dark">{journey.from.time.slice(0, 5)}</span>
-            <span className="text-sm font-bold text-dark">{journey.from.cityName}</span>
-            <span className="text-[10px] text-gray-body mt-1 flex items-center gap-1">
-              <MapPin size={10} /> {journey.from.stationName}
-            </span>
-          </div>
-
-          {/* Path visualization */}
-          <div className="flex-1 flex flex-col items-center gap-2">
-            <div className="flex items-center gap-2 w-full">
-              <div className="w-3 h-3 rounded-full border-2 border-primary" />
-              <div className="flex-1 h-px border-t-2 border-dashed border-gray-border" />
-              <div className="w-3 h-3 rounded-full bg-primary" />
-            </div>
-            <span className="text-[10px] font-bold text-gray-body uppercase tracking-tighter">
-              <Clock size={10} className="inline mr-1" />
-              {journey.duration}
-            </span>
-          </div>
-
-          {/* Arrival */}
-          <div className="flex flex-col text-right">
-            <span className="text-2xl font-black text-dark">{journey.to.time.slice(0, 5)}</span>
-            <span className="text-sm font-bold text-dark">{journey.to.cityName}</span>
-            <span className="text-[10px] text-gray-body mt-1 flex items-center justify-end gap-1">
-              {journey.to.stationName} <MapPin size={10} />
-            </span>
-          </div>
-        </div>
-
-        {/* Equipments & Info */}
-        <div className="flex flex-wrap gap-3 mt-6 pt-4 border-t border-gray-border">
-          <div className="flex items-center gap-1 text-[10px] text-green font-bold uppercase py-1 px-2 bg-green/10 rounded-full">
-            <Wifi size={10} /> Wifi
-          </div>
-          <div className="flex items-center gap-1 text-[10px] text-primary font-bold uppercase py-1 px-2 bg-primary/10 rounded-full">
-            <Zap size={10} /> Prise
-          </div>
-          <div className="flex items-center gap-1 text-[10px] text-blue font-bold uppercase py-1 px-2 bg-blue/10 rounded-full">
-            <User size={10} /> {journey.seatsLeft} Places
-          </div>
-        </div>
-      </div>
-
-      {/* Price & Action */}
-      <div className="md:w-44 flex flex-col items-end justify-center shrink-0 border-l border-gray-border pl-6">
-        <div className="text-xs font-bold text-gray-body mb-1">Dès</div>
-        <div className="text-3xl font-black text-primary mb-4">
-          {journey.price.total} <span className="text-sm">DH</span>
+    <div className="bg-white border text-left border-gray-200 rounded-[20px] p-6 mb-4 flex flex-col gap-6 shadow-sm hover:shadow-md transition-shadow">
+      {/* Top Row: Company & Price */}
+      <div className="flex justify-between items-center">
+        <div className="flex items-center gap-3">
+          <img src={journey.company.logo} alt={journey.company.name} className="h-6 object-contain" />
+          <span className="text-sm font-bold text-gray-900">{journey.company.name} - بولمان الجنوب</span>
         </div>
         
-        <Link 
-          to="/journey/$journeyId"
-          params={{ journeyId: journey.id.toString() }}
-          search={{ searchId }}
-          className="w-full no-underline"
-        >
-          <Button className="w-full font-bold bg-dark hover:bg-dark/90 text-white rounded-xl transition-all group-hover:bg-primary">
-            Choisir
-            <ChevronRight size={16} className="ml-1" />
-          </Button>
-        </Link>
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1 text-sm text-gray-500 font-medium">
+            Prix / 1 <User size={14} />
+          </div>
+          <Link 
+            to="/journey/$journeyId"
+            params={{ journeyId: journey.id.toString() }}
+            search={{ searchId }}
+            className="no-underline"
+          >
+            <Button className="h-9 px-4 text-sm font-bold bg-[#3b82f6] hover:bg-blue-600 text-white rounded-full flex items-center gap-1 shadow-sm transition-all hover:scale-105">
+              {journey.price.total} Dhs
+              <ChevronRight size={16} />
+            </Button>
+          </Link>
+        </div>
+      </div>
+
+      {/* Middle Row: Journey Timeline */}
+      <div className="flex items-center justify-between mt-2">
+        {/* Departure */}
+        <div className="flex flex-col min-w-[100px]">
+          <span className="text-[15px] font-bold text-gray-900">{journey.from.cityName}</span>
+          <span className="text-[14px] text-gray-600 mt-0.5">{journey.from.time.slice(0, 5)}</span>
+        </div>
+
+        {/* Dotted Line connecting the cities */}
+        <div className="flex-1 mx-6 flex items-center text-gray-300">
+          <div className="h-[1px] flex-1 border-t border-dashed border-gray-300"></div>
+          <span className="mx-2 text-gray-300">→</span>
+        </div>
+
+        {/* Arrival */}
+        <div className="flex flex-col text-right min-w-[100px]">
+          <span className="text-[15px] font-bold text-gray-900">{journey.to.cityName}</span>
+          <span className="text-[14px] text-gray-600 mt-0.5">{journey.to.time.slice(0, 5)}</span>
+        </div>
+      </div>
+
+      {/* Bottom Row: Amenities & Duration */}
+      <div className="flex justify-between items-center mt-2">
+        <div className="flex items-center gap-4 text-gray-500">
+          <Wifi size={16} />
+          <Snowflake size={16} />
+          <Briefcase size={16} />
+          <Frame size={16} /> {/* Placeholder for luggage icon */}
+        </div>
+        
+        <div className="flex items-center gap-1.5 text-sm font-bold text-gray-500">
+          <Clock size={16} />
+          {journey.duration}
+        </div>
       </div>
     </div>
   );

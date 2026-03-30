@@ -23,7 +23,7 @@ export default function Header() {
         <nav className="hidden md:flex items-center gap-8">
           {NAV_LINKS.map((link) => (
             <Link
-              key={link.href}
+              key={link.label}
               to={link.href}
               className="text-sm font-medium text-gray-body hover:text-dark transition-colors no-underline relative after:absolute after:bottom-[-4px] after:left-0 after:w-full after:h-0.5 after:bg-primary after:scale-x-0 after:origin-left after:transition-transform hover:after:scale-x-100 [&.active]:text-dark [&.active]:after:scale-x-100"
             >
@@ -48,7 +48,7 @@ export default function Header() {
           <nav className="container-app py-4 flex flex-col gap-3">
             {NAV_LINKS.map((link) => (
               <Link
-                key={link.href}
+                key={link.label}
                 to={link.href}
                 className="text-sm font-medium text-gray-body hover:text-dark py-2 no-underline"
                 onClick={() => setMobileOpen(false)}

@@ -1,6 +1,8 @@
 import { HeadContent, Scripts, createRootRoute } from '@tanstack/react-router'
 import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
 import { TanStackDevtools } from '@tanstack/react-devtools'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import * as React from 'react'
 import Footer from '../components/Footer'
 import Header from '../components/Header'
 
@@ -33,6 +35,14 @@ export const Route = createRootRoute({
 })
 
 function RootDocument({ children }: { children: React.ReactNode }) {
+  const [queryClient] = React.useState(() => new QueryClient({
+    defaultOptions: {
+      queries: {
+        staleTime: 60 * 1000,
+      },
+    },
+  }))
+
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
@@ -40,20 +50,22 @@ function RootDocument({ children }: { children: React.ReactNode }) {
         <HeadContent />
       </head>
       <body className="font-sans antialiased [overflow-wrap:anywhere] selection:bg-[rgba(79,184,178,0.24)]">
-        <Header />
-        {children}
-        <Footer />
-        <TanStackDevtools
-          config={{
-            position: 'bottom-right',
-          }}
-          plugins={[
-            {
-              name: 'Tanstack Router',
-              render: <TanStackRouterDevtoolsPanel />,
-            },
-          ]}
-        />
+        <QueryClientProvider client={queryClient}>
+          <Header />
+          {children}
+          <Footer />
+          <TanStackDevtools
+            config={{
+              position: 'bottom-right',
+            }}
+            plugins={[
+              {
+                name: 'Tanstack Router',
+                render: <TanStackRouterDevtoolsPanel />,
+              },
+            ]}
+          />
+        </QueryClientProvider>
         <Scripts />
       </body>
     </html>

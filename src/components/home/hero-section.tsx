@@ -2,24 +2,26 @@ import SearchForm from '#/components/search/search-form';
 
 export default function HeroSection() {
   return (
-    <section className="relative w-full h-[500px] overflow-hidden">
-      {/* Background Image */}
-      <div 
-        className="absolute inset-0 bg-cover bg-center transition-transform duration-1000 hover:scale-105"
-        style={{ backgroundImage: `url('/hero-canyon.png')` }}
-      />
-      
-      {/* Overlay */}
-      <div className="absolute inset-0 bg-black/30" />
-      
-      {/* Content */}
-      <div className="container-app relative h-full flex flex-col items-center justify-center text-center text-white pb-12">
-        <h1 className="text-4xl md:text-6xl font-extrabold mb-6 tracking-tight drop-shadow-2xl rise-in">
-          Book Your Bus Tickets in Minutes
-        </h1>
-        <p className="text-lg md:text-xl font-medium max-w-2xl opacity-90 drop-shadow-lg rise-in delay-100">
-          Explorez le Maroc avec confort et facilité. Réservez vos billets auprès des meilleures compagnies de bus.
-        </p>
+    <section className="container-app py-8">
+      <div className="flex flex-col md:flex-row gap-8 items-stretch h-auto md:h-[500px]">
+        {/* Left: Image Card */}
+        <div className="relative flex-1 rounded-[32px] overflow-hidden">
+          <div 
+            className="absolute inset-0 bg-cover bg-center transition-transform duration-1000 hover:scale-105"
+            style={{ backgroundImage: `url('/hero-canyon.png')` }}
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
+          <div className="absolute bottom-10 left-10 md:bottom-12 md:left-12 right-10">
+            <h1 className="text-4xl md:text-5xl font-extrabold text-white leading-tight drop-shadow-md rise-in">
+              Book Your Bus Tickets in Minutes
+            </h1>
+          </div>
+        </div>
+        
+        {/* Right: Search Form */}
+        <div className="w-full md:w-[420px] flex-shrink-0 flex items-center justify-center">
+          <SearchForm />
+        </div>
       </div>
     </section>
   );

@@ -1,25 +1,41 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from '@tanstack/react-router';
 import { useCities } from '../../hooks/use-cities';
 import type { City } from '../../api/types';
 import { Button } from '../ui/button';
-import { MapPin, Calendar, Users, Search } from 'lucide-react';
-import { format } from 'date-fns';
+import { MapPin, Calendar as CalendarIcon, Users, Search } from 'lucide-react';
+import { format, isToday } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { cn } from '../../lib/utils';
+import { Calendar } from '../ui/calendar';
 
-export default function SearchForm() {
+interface SearchFormProps {
+  initialFromId?: number;
+  initialToId?: number;
+  initialDate?: string;
+  initialPassengers?: number;
+}
+
+export default function SearchForm({ 
+  initialFromId = undefined, 
+  initialToId = undefined, 
+  initialDate, 
+  initialPassengers = 1 
+}: SearchFormProps = {}) {
   const navigate = useNavigate();
   const { data: cities = [] } = useCities();
   
-  const [fromId, setFromId] = useState<number | null>(null);
-  const [toId, setToId] = useState<number | null>(null);
-  const [date, setDate] = useState<string>(format(new Date(), 'yyyy-MM-dd'));
+  const [fromId, setFromId] = useState<number | undefined>(initialFromId);
+  const [toId, setToId] = useState<number | undefined>(initialToId);
+  const [date, setDate] = useState<string>(initialDate || format(new Date(), 'yyyy-MM-dd'));
   const [returnDate, setReturnDate] = useState<string>('');
-  const [passengers, setPassengers] = useState(1);
+  const [passengers, setPassengers] = useState(initialPassengers);
   
   const [showFromMenu, setShowFromMenu] = useState(false);
   const [showToMenu, setShowToMenu] = useState(false);
+  
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [showReturnPicker, setShowReturnPicker] = useState(false);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -36,35 +52,74 @@ export default function SearchForm() {
     });
   };
 
-  const getCityName = (id: number | null) => 
+  const getCityName = (id: number | undefined) => 
     cities.find((c: City) => c.id === id)?.name || '';
 
+  const [fromSearchText, setFromSearchText] = useState('');
+  const [toSearchText, setToSearchText] = useState('');
+
+  // Initialize search texts when cities are loaded or on first mount
+  useEffect(() => {
+    if (cities.length > 0 && fromId && !fromSearchText) {
+      setFromSearchText(getCityName(fromId));
+    }
+  }, [cities, fromId]);
+
+  useEffect(() => {
+    if (cities.length > 0 && toId && !toSearchText) {
+      setToSearchText(getCityName(toId));
+    }
+  }, [cities, toId]);
+
+  const filteredFromCities = cities.filter((c: City) => c.name.toLowerCase().includes(fromSearchText.toLowerCase()));
+  const filteredToCities = cities.filter((c: City) => c.name.toLowerCase().includes(toSearchText.toLowerCase()));
+
   return (
-    <div className="bg-white rounded-2xl shadow-xl p-4 md:p-6 w-full max-w-4xl mx-auto -mt-24 relative z-10 border border-gray-border">
-      <form onSubmit={handleSearch} className="grid grid-cols-1 md:grid-cols-5 gap-4">
+    <div className="bg-white rounded-[24px] shadow-sm p-6 w-full max-w-md relative z-10 border border-gray-200">
+      <form onSubmit={handleSearch} className="flex flex-col gap-4">
         {/* Departure City */}
-        <div className="md:col-span-1 relative">
-          <label className="text-[10px] font-bold text-gray-body uppercase mb-1 block">Ville de départ</label>
+        <div className="relative">
           <div 
-            onClick={() => setShowFromMenu(!showFromMenu)}
-            className="flex items-center gap-2 p-3 border border-gray-border rounded-xl hover:border-primary transition-colors cursor-pointer"
+            className="flex items-center gap-3 p-4 border border-gray-200 rounded-xl focus-within:border-primary transition-colors cursor-text"
           >
-            <MapPin size={18} className="text-gray-body shrink-0" />
-            <span className={cn("text-sm truncate", !fromId && "text-gray-400")}>
-              {getCityName(fromId) || 'Ville de départ'}
-            </span>
+            <MapPin size={20} className="text-gray-500 shrink-0" />
+            <input
+              type="text"
+              placeholder="Ville de départ"
+              value={fromSearchText}
+              onChange={(e) => {
+                setFromSearchText(e.target.value);
+                setFromId(undefined); // Reset specific ID since user is typing
+                setShowFromMenu(true);
+              }}
+              onFocus={() => {
+                setShowFromMenu(true);
+                setShowToMenu(false);
+                setShowDatePicker(false);
+                setShowReturnPicker(false);
+              }}
+              onBlur={() => setTimeout(() => setShowFromMenu(false), 150)}
+              className="w-full bg-transparent outline-none text-sm font-medium text-gray-900 placeholder:text-gray-400"
+            />
           </div>
           
           {showFromMenu && (
             <div className="absolute top-full left-0 w-full mt-2 bg-white border border-gray-border shadow-2xl rounded-xl z-50 overflow-hidden fade-in">
               <div className="p-2 border-b border-gray-border bg-gray-light">
-                <span className="text-[10px] font-bold text-gray-body uppercase">Villes populaires</span>
+                <span className="text-[10px] font-bold text-gray-body uppercase">
+                  {filteredFromCities.length > 0 ? 'Villes' : 'Aucun résultat'}
+                </span>
               </div>
-              <div className="max-h-60 overflow-y-auto">
-                {cities.map(city => (
+              <div className="max-h-60 overflow-y-auto w-full">
+                {filteredFromCities.map((city: City) => (
                   <div 
                     key={city.id}
-                    onClick={() => { setFromId(city.id); setShowFromMenu(false); }}
+                    onMouseDown={(e) => {
+                      e.preventDefault(); // Prevents input from losing focus early
+                      setFromId(city.id); 
+                      setFromSearchText(city.name);
+                      setShowFromMenu(false); 
+                    }}
                     className="p-3 text-sm hover:bg-gray-light cursor-pointer flex items-center gap-2"
                   >
                     <MapPin size={14} className="text-gray-body" />
@@ -77,28 +132,48 @@ export default function SearchForm() {
         </div>
 
         {/* Arrival City */}
-        <div className="md:col-span-1 relative">
-          <label className="text-[10px] font-bold text-gray-body uppercase mb-1 block">Ville d'arrivée</label>
+        <div className="relative">
           <div 
-            onClick={() => setShowToMenu(!showToMenu)}
-            className="flex items-center gap-2 p-3 border border-gray-border rounded-xl hover:border-primary transition-colors cursor-pointer"
+            className="flex items-center gap-3 p-4 border border-gray-200 rounded-xl focus-within:border-primary transition-colors cursor-text"
           >
-            <MapPin size={18} className="text-gray-body shrink-0" />
-            <span className={cn("text-sm truncate", !toId && "text-gray-400")}>
-              {getCityName(toId) || 'Ville d\'arrivée'}
-            </span>
+            <MapPin size={20} className="text-gray-500 shrink-0" />
+            <input
+              type="text"
+              placeholder="Ville d'arrivée"
+              value={toSearchText}
+              onChange={(e) => {
+                setToSearchText(e.target.value);
+                setToId(undefined); // Reset specific ID since user is typing
+                setShowToMenu(true);
+              }}
+              onFocus={() => {
+                setShowToMenu(true);
+                setShowFromMenu(false);
+                setShowDatePicker(false);
+                setShowReturnPicker(false);
+              }}
+              onBlur={() => setTimeout(() => setShowToMenu(false), 150)}
+              className="w-full bg-transparent outline-none text-sm font-medium text-gray-900 placeholder:text-gray-400"
+            />
           </div>
           
           {showToMenu && (
             <div className="absolute top-full left-0 w-full mt-2 bg-white border border-gray-border shadow-2xl rounded-xl z-50 overflow-hidden fade-in">
               <div className="p-2 border-b border-gray-border bg-gray-light">
-                <span className="text-[10px] font-bold text-gray-body uppercase">Villes populaires</span>
+                <span className="text-[10px] font-bold text-gray-body uppercase">
+                  {filteredToCities.length > 0 ? 'Villes' : 'Aucun résultat'}
+                </span>
               </div>
               <div className="max-h-60 overflow-y-auto">
-                {cities.map(city => (
+                {filteredToCities.map((city: City) => (
                   <div 
                     key={city.id}
-                    onClick={() => { setToId(city.id); setShowToMenu(false); }}
+                    onMouseDown={(e) => {
+                      e.preventDefault(); 
+                      setToId(city.id); 
+                      setToSearchText(city.name);
+                      setShowToMenu(false); 
+                    }}
                     className="p-3 text-sm hover:bg-gray-light cursor-pointer flex items-center gap-2"
                   >
                     <MapPin size={14} className="text-gray-body" />
@@ -110,65 +185,80 @@ export default function SearchForm() {
           )}
         </div>
 
-        {/* Date */}
-        <div className="md:col-span-1">
-          <label className="text-[10px] font-bold text-gray-body uppercase mb-1 block">Aujourd'hui</label>
-          <div className="flex items-center gap-2 p-3 border border-gray-border rounded-xl hover:border-primary transition-colors cursor-pointer relative">
-            <Calendar size={18} className="text-gray-body shrink-0" />
-            <input 
-              type="date" 
-              value={date}
-              onChange={(e) => setDate(e.target.value)}
-              className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
-            />
-            <span className="text-sm truncate">
-              {format(new Date(date), 'dd/MM/yyyy', { locale: fr })}
-            </span>
-          </div>
-        </div>
+        {/* Dates row */}
+        <div className="grid grid-cols-2 gap-4">
+          {/* Departure Date */}
+          <div className="relative">
+            <div 
+              onClick={() => { setShowDatePicker(!showDatePicker); setShowReturnPicker(false); setShowFromMenu(false); setShowToMenu(false); }}
+              className="flex items-center gap-3 p-4 border border-gray-200 rounded-xl hover:border-primary transition-colors cursor-pointer bg-white"
+            >
+              <CalendarIcon size={20} className="text-gray-500 shrink-0" />
+              <span className="text-sm truncate text-gray-600 font-medium">
+                {date ? (isToday(new Date(date)) ? "Aujourd'hui" : format(new Date(date), 'dd MMMM yyyy', { locale: fr })) : "Aujourd'hui"}
+              </span>
+            </div>
 
-        {/* Return Date */}
-        <div className="md:col-span-1">
-          <label className="text-[10px] font-bold text-gray-body uppercase mb-1 block">Date de retour</label>
-          <div className="flex items-center gap-2 p-3 border border-gray-border rounded-xl hover:border-primary transition-colors cursor-pointer relative">
-            <Calendar size={18} className="text-gray-body shrink-0" />
-            <input 
-              type="date" 
-              value={returnDate}
-              onChange={(e) => setReturnDate(e.target.value)}
-              className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
-            />
-            <span className={cn("text-sm truncate", !returnDate && "text-gray-400")}>
-              {returnDate ? format(new Date(returnDate), 'dd/MM/yyyy', { locale: fr }) : 'Date de retour'}
-            </span>
+            {showDatePicker && (
+              <div className="absolute top-full left-0 mt-2 z-50 animate-in fade-in zoom-in-95">
+                <Calendar 
+                  selectedDate={date ? new Date(date) : undefined}
+                  onSelect={(d) => {
+                    setDate(format(d, 'yyyy-MM-dd'));
+                    setShowDatePicker(false);
+                  }}
+                />
+              </div>
+            )}
+          </div>
+
+          {/* Return Date */}
+          <div className="relative">
+            <div 
+              onClick={() => { setShowReturnPicker(!showReturnPicker); setShowDatePicker(false); setShowFromMenu(false); setShowToMenu(false); }}
+              className="flex items-center gap-3 p-4 border border-gray-200 rounded-xl hover:border-primary transition-colors cursor-pointer bg-white"
+            >
+              <CalendarIcon size={20} className="text-gray-500 shrink-0" />
+              <span className={cn("text-sm truncate font-medium text-gray-400 capitalize", returnDate && "text-gray-600")}>
+                {returnDate ? format(new Date(returnDate), 'dd MMMM yyyy', { locale: fr }) : 'Date de retour'}
+              </span>
+            </div>
+
+            {showReturnPicker && (
+              <div className="absolute top-full left-0 mt-2 z-50 animate-in fade-in zoom-in-95">
+                <Calendar 
+                  selectedDate={returnDate ? new Date(returnDate) : undefined}
+                  onSelect={(d) => {
+                    setReturnDate(format(d, 'yyyy-MM-dd'));
+                    setShowReturnPicker(false);
+                  }}
+                />
+              </div>
+            )}
           </div>
         </div>
 
         {/* Passengers */}
-        <div className="md:col-span-1">
-          <label className="text-[10px] font-bold text-gray-body uppercase mb-1 block">Passagers</label>
-          <div className="flex items-center gap-2 p-3 border border-gray-border rounded-xl hover:border-primary transition-colors cursor-pointer relative">
-            <Users size={18} className="text-gray-body shrink-0" />
-            <select 
-              value={passengers}
-              onChange={(e) => setPassengers(Number(e.target.value))}
-              className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
-            >
-              {[1, 2, 3, 4, 5, 6].map(n => (
-                <option key={n} value={n}>{n} Passagers</option>
-              ))}
-            </select>
-            <span className="text-sm truncate">{passengers} Passagers</span>
-          </div>
+        <div className="flex items-center gap-3 p-4 border border-gray-200 rounded-xl hover:border-primary transition-colors cursor-pointer relative">
+          <Users size={20} className="text-gray-500 shrink-0" />
+          <select 
+            value={passengers}
+            onChange={(e) => setPassengers(Number(e.target.value))}
+            className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+          >
+            {[1, 2, 3, 4, 5, 6].map(n => (
+              <option key={n} value={n}>{n} Passagers</option>
+            ))}
+          </select>
+          <span className="text-sm truncate text-gray-600 font-medium">{passengers} Passagers</span>
         </div>
 
-        <div className="md:col-span-5 pt-2">
+        <div className="pt-2">
           <Button 
             type="submit" 
-            className="w-full h-14 text-base font-bold bg-blue hover:bg-blue/90 text-white rounded-xl shadow-lg transition-all active:scale-[0.98]"
+            className="w-full h-[52px] text-[15px] font-bold bg-[#3b82f6] hover:bg-blue-600 text-white rounded-full shadow-md transition-all active:scale-[0.98]"
             disabled={!fromId || !toId}
           >
-            <Search size={20} className="mr-2" />
             Trouver mon ticket
           </Button>
         </div>
