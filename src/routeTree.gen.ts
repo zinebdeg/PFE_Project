@@ -13,8 +13,8 @@ import { Route as SearchRouteImport } from './routes/search'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as JourneyJourneyIdRouteImport } from './routes/journey/$journeyId'
-import { Route as BookingNewRouteImport } from './routes/booking/new'
 import { Route as BookingBookingCodeRouteImport } from './routes/booking/$bookingCode'
+import { Route as BookingCheckoutJourneyIdRouteImport } from './routes/booking/checkout.$journeyId'
 
 const SearchRoute = SearchRouteImport.update({
   id: '/search',
@@ -36,32 +36,33 @@ const JourneyJourneyIdRoute = JourneyJourneyIdRouteImport.update({
   path: '/journey/$journeyId',
   getParentRoute: () => rootRouteImport,
 } as any)
-const BookingNewRoute = BookingNewRouteImport.update({
-  id: '/booking/new',
-  path: '/booking/new',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const BookingBookingCodeRoute = BookingBookingCodeRouteImport.update({
   id: '/booking/$bookingCode',
   path: '/booking/$bookingCode',
   getParentRoute: () => rootRouteImport,
 } as any)
+const BookingCheckoutJourneyIdRoute =
+  BookingCheckoutJourneyIdRouteImport.update({
+    id: '/booking/checkout/$journeyId',
+    path: '/booking/checkout/$journeyId',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/search': typeof SearchRoute
   '/booking/$bookingCode': typeof BookingBookingCodeRoute
-  '/booking/new': typeof BookingNewRoute
   '/journey/$journeyId': typeof JourneyJourneyIdRoute
+  '/booking/checkout/$journeyId': typeof BookingCheckoutJourneyIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/search': typeof SearchRoute
   '/booking/$bookingCode': typeof BookingBookingCodeRoute
-  '/booking/new': typeof BookingNewRoute
   '/journey/$journeyId': typeof JourneyJourneyIdRoute
+  '/booking/checkout/$journeyId': typeof BookingCheckoutJourneyIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -69,8 +70,8 @@ export interface FileRoutesById {
   '/about': typeof AboutRoute
   '/search': typeof SearchRoute
   '/booking/$bookingCode': typeof BookingBookingCodeRoute
-  '/booking/new': typeof BookingNewRoute
   '/journey/$journeyId': typeof JourneyJourneyIdRoute
+  '/booking/checkout/$journeyId': typeof BookingCheckoutJourneyIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -79,24 +80,24 @@ export interface FileRouteTypes {
     | '/about'
     | '/search'
     | '/booking/$bookingCode'
-    | '/booking/new'
     | '/journey/$journeyId'
+    | '/booking/checkout/$journeyId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/about'
     | '/search'
     | '/booking/$bookingCode'
-    | '/booking/new'
     | '/journey/$journeyId'
+    | '/booking/checkout/$journeyId'
   id:
     | '__root__'
     | '/'
     | '/about'
     | '/search'
     | '/booking/$bookingCode'
-    | '/booking/new'
     | '/journey/$journeyId'
+    | '/booking/checkout/$journeyId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -104,8 +105,8 @@ export interface RootRouteChildren {
   AboutRoute: typeof AboutRoute
   SearchRoute: typeof SearchRoute
   BookingBookingCodeRoute: typeof BookingBookingCodeRoute
-  BookingNewRoute: typeof BookingNewRoute
   JourneyJourneyIdRoute: typeof JourneyJourneyIdRoute
+  BookingCheckoutJourneyIdRoute: typeof BookingCheckoutJourneyIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -138,18 +139,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof JourneyJourneyIdRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/booking/new': {
-      id: '/booking/new'
-      path: '/booking/new'
-      fullPath: '/booking/new'
-      preLoaderRoute: typeof BookingNewRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/booking/$bookingCode': {
       id: '/booking/$bookingCode'
       path: '/booking/$bookingCode'
       fullPath: '/booking/$bookingCode'
       preLoaderRoute: typeof BookingBookingCodeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/booking/checkout/$journeyId': {
+      id: '/booking/checkout/$journeyId'
+      path: '/booking/checkout/$journeyId'
+      fullPath: '/booking/checkout/$journeyId'
+      preLoaderRoute: typeof BookingCheckoutJourneyIdRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -160,8 +161,8 @@ const rootRouteChildren: RootRouteChildren = {
   AboutRoute: AboutRoute,
   SearchRoute: SearchRoute,
   BookingBookingCodeRoute: BookingBookingCodeRoute,
-  BookingNewRoute: BookingNewRoute,
   JourneyJourneyIdRoute: JourneyJourneyIdRoute,
+  BookingCheckoutJourneyIdRoute: BookingCheckoutJourneyIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

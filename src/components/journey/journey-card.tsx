@@ -3,7 +3,15 @@ import { Button } from '../ui/button';
 import { Clock, User, ChevronRight, Wifi, Snowflake, Briefcase, Frame } from 'lucide-react';
 import { Link } from '@tanstack/react-router';
 
-export default function JourneyCard({ journey, searchId }: { journey: Journey; searchId: string }) {
+export default function JourneyCard({ 
+  journey, 
+  searchId, 
+  searchParams 
+}: { 
+  journey: Journey; 
+  searchId: string;
+  searchParams: any;
+}) {
   return (
     <div className="bg-white border text-left border-gray-200 rounded-[20px] p-6 mb-4 flex flex-col gap-6 shadow-sm hover:shadow-md transition-shadow">
       {/* Top Row: Company & Price */}
@@ -18,9 +26,12 @@ export default function JourneyCard({ journey, searchId }: { journey: Journey; s
             Prix / 1 <User size={14} />
           </div>
           <Link 
-            to="/journey/$journeyId"
+            to="/booking/checkout/$journeyId"
             params={{ journeyId: journey.id.toString() }}
-            search={{ searchId }}
+            search={{ 
+              ...searchParams,
+              searchId 
+            }}
             className="no-underline"
           >
             <Button className="h-9 px-4 text-sm font-bold bg-[#3b82f6] hover:bg-blue-600 text-white rounded-full flex items-center gap-1 shadow-sm transition-all hover:scale-105">

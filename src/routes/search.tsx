@@ -4,9 +4,7 @@ import { useCities } from '../hooks/use-cities';
 import JourneyCard from '../components/journey/journey-card';
 import { Skeleton } from '../components/ui/skeleton';
 import { Button } from '../components/ui/button';
-import { Search, AlertCircle, Calendar, MapPin, Filter } from 'lucide-react';
-import { format } from 'date-fns';
-import { fr } from 'date-fns/locale';
+import { Search, AlertCircle } from 'lucide-react';
 import type { Journey, City } from '../api/types';
 import SearchForm from '../components/search/search-form';
 
@@ -37,9 +35,6 @@ function SearchResults() {
     date,
     nbrOfPassengers,
   });
-
-  const fromCity = cities?.find((c: City) => c.id === departureCityId)?.name;
-  const toCity = cities?.find((c: City) => c.id === arrivalCityId)?.name;
 
   return (
     <main className="min-h-screen pt-10 pb-20 bg-[#f4f7fc]">
@@ -101,6 +96,7 @@ function SearchResults() {
                     key={journey.id} 
                     journey={journey} 
                     searchId={results.searchId}
+                    searchParams={{ departureCityId, arrivalCityId, date, nbrOfPassengers }}
                   />
                 ))}
               </div>
