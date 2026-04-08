@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate, Link } from '@tanstack/react-router';
 import { useJourneySearch } from '../../hooks/use-journeys';
 import { useCreateBooking } from '../../hooks/use-booking';
 import { useState, useMemo } from 'react';
-import { Info, Phone, Clock } from 'lucide-react';
+import { Phone } from 'lucide-react';
 import { Button } from '../../components/ui/button';
 import { Skeleton } from '../../components/ui/skeleton';
 
@@ -108,63 +108,11 @@ function BookingPage() {
     <main className="min-h-screen pt-10 pb-20 bg-gray-light/10">
       <div className="container-app">
         
-        {/* Page Grid - Matching specific 3-column-like text instructions */}
+        {/* Page Grid - Modern 2-Column Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           
-          {/* LEFT COLUMN: Détails du trajet & Help Box */}
-          <div className="lg:col-span-3 space-y-6">
-            <div className="bg-white p-8 rounded-[32px] border border-gray-border shadow-sm rise-in">
-              <h2 className="text-sm font-black text-dark uppercase tracking-widest mb-8 flex items-center gap-2">
-                <Info size={16} className="text-blue" />
-                Détails du trajet
-              </h2>
-              
-              <div className="space-y-8 relative">
-                <div className="absolute left-[7px] top-6 bottom-6 w-0.5 border-l-2 border-dashed border-gray-border/50" />
-                
-                <div className="flex gap-4 relative z-10 group">
-                  <div className="w-4 h-4 rounded-full bg-white border-2 border-blue mt-1 shrink-0" />
-                  <div className="flex flex-col">
-                    <span className="text-sm font-bold text-dark">{journey.from.cityName}</span>
-                    <span className="text-[11px] text-gray-body font-medium uppercase">{journey.from.time.slice(0, 5)}</span>
-                  </div>
-                </div>
-
-                <div className="flex gap-4 relative z-10 group">
-                  <div className="w-4 h-4 rounded-full bg-white border-2 border-blue mt-1 shrink-0" />
-                  <div className="flex flex-col">
-                    <span className="text-sm font-bold text-dark">{journey.to.cityName}</span>
-                    <span className="text-[11px] text-gray-body font-medium uppercase">{journey.to.time.slice(0, 5)}</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="mt-8 pt-8 border-t border-gray-border/50">
-                <div className="flex items-center gap-2 text-xs font-bold text-gray-body uppercase tracking-wider">
-                  <Clock size={16} className="text-blue" />
-                  Durée: {journey.duration}
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-[#f0f7ff] p-8 rounded-[32px] border border-blue/10 flex flex-col gap-4 rise-in delay-100">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-[16px] bg-blue text-white flex items-center justify-center shrink-0 shadow-lg shadow-blue/20">
-                  <Phone size={24} />
-                </div>
-                <div className="flex flex-col">
-                  <span className="text-[10px] font-black text-blue uppercase tracking-widest leading-none mb-1">Besoin d'aide ?</span>
-                  <span className="text-xl font-black text-dark tracking-tight">05 3000 3000</span>
-                </div>
-              </div>
-              <p className="text-[11px] text-gray-body font-medium leading-relaxed">
-                Notre équipe est disponible 24/7 pour vous accompagner dans votre réservation.
-              </p>
-            </div>
-          </div>
-
-          {/* RIGHT COLUMN: Seat Card, Passenger Form, Payment Section */}
-          <div className="lg:col-span-6 flex flex-col gap-6">
+          {/* MAIN COLUMN (LEFT): Seat Card, Passenger Form, Payment Section */}
+          <div className="lg:col-span-8 flex flex-col gap-6">
             <SeatSelectionCard 
               selectedSeat={selectedSeat} 
               onClick={() => navigate({ 
@@ -185,16 +133,31 @@ function BookingPage() {
           </div>
 
           {/* SIDEBAR (RIGHT SIDE): Journey summary & Price box */}
-          <div className="lg:col-span-3 sticky top-24">
+          <div className="lg:col-span-4 sticky top-24 space-y-6">
             <BookingSidebar 
               journey={journey}
+              searchId={searchId}
               passengerCount={searchParams.nbrOfPassengers}
               serviceFee={5.00}
               onPay={handlePay}
               loading={createBookingMutation.isPending}
             />
+            
+            <div className="bg-[#f0f7ff] p-8 rounded-[32px] border border-blue/10 flex flex-col gap-4 rise-in delay-100">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-[16px] bg-blue text-white flex items-center justify-center shrink-0 shadow-lg shadow-blue/20">
+                  <Phone size={24} />
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-[10px] font-black text-blue uppercase tracking-widest leading-none mb-1">Besoin d'aide ?</span>
+                  <span className="text-xl font-black text-dark tracking-tight">05 3000 3000</span>
+                </div>
+              </div>
+              <p className="text-[11px] text-gray-body font-medium leading-relaxed">
+                Notre équipe est disponible 24/7 pour vous accompagner dans votre réservation.
+              </p>
+            </div>
           </div>
-
         </div>
       </div>
     </main>

@@ -35,8 +35,8 @@ export async function fetchJourneyStops(params: {
 }): Promise<JourneyStop[]> {
   return apiRequest<JourneyStop[]>('/journeys/stops', {
     params: {
-      'journey-id': params.journeyId,
-      'search-id': params.searchId,
+      journeyId: params.journeyId,
+      searchId: params.searchId,
     },
   });
 }
