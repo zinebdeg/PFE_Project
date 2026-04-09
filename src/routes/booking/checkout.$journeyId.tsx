@@ -11,6 +11,7 @@ import SeatSelectionCard from '../../components/booking/seat-selection-card';
 import PassengerFormSection from '../../components/booking/passenger-form-section';
 import PaymentSection from '../../components/booking/payment-section';
 import BookingSidebar from '../../components/booking/booking-sidebar';
+import SeatMapModal from '../../components/booking/seat-map-modal';
 
 export const Route = createFileRoute('/booking/checkout/$journeyId')({
   validateSearch: (search: Record<string, unknown>) => {
@@ -39,6 +40,7 @@ function BookingPage() {
     phone: '',
   });
   const [paymentMethod, setPaymentMethod] = useState<'card' | 'cash'>('card');
+  const [isSeatModalOpen, setIsSeatModalOpen] = useState(false);
 
   // Using the search hook with the parameters passed from search results
   const { data: searchResult, isLoading } = useJourneySearch({
@@ -54,6 +56,15 @@ function BookingPage() {
     [searchResult, journeyId]
   );
 
+  const handleSeatConfirm = (seats: string[]) => {
+    navigate({
+      to: '/booking/checkout/$journeyId',
+      params: { journeyId },
+      search: { ...searchParams, seat: seats.join(',') },
+    });
+    setIsSeatModalOpen(false);
+  };
+
   const handlePay = async () => {
     if (!journey || !passengerData.name || !passengerData.email || !passengerData.phone) {
       alert('Veuillez remplir tous les champs obligatoires.');
@@ -67,7 +78,7 @@ function BookingPage() {
         name: passengerData.name,
         email: passengerData.email,
         phone: passengerData.phone,
-        seats: selectedSeat ? [Number(selectedSeat)] : [],
+        seats: selectedSeat ? selectedSeat.split(',').map(Number) : [],
       });
 
       if (response && response.code) {
@@ -113,14 +124,28 @@ function BookingPage() {
           
           {/* MAIN COLUMN (LEFT): Seat Card, Passenger Form, Payment Section */}
           <div className="lg:col-span-8 flex flex-col gap-6">
-            <SeatSelectionCard 
-              selectedSeat={selectedSeat} 
-              onClick={() => navigate({ 
-                to: '/journey/$journeyId', 
-                params: { journeyId }, 
-                search: searchParams 
-              })} 
-            />
+            {journey.showSeatMap ? (
+              <SeatSelectionCard 
+                selectedSeat={selectedSeat} 
+                onClick={() => setIsSeatModalOpen(true)} 
+              />
+            ) : (
+              <div className="p-6 rounded-[24px] border border-blue/20 bg-blue/5 flex items-center justify-between mb-6 shadow-sm">
+                <div className="flex flex-col gap-1">
+                  <h3 className="text-sm font-black text-dark tracking-tight">Sélection de siège</h3>
+                  <p className="text-xs font-bold text-gray-body">Le choix de siège n'est pas disponible pour ce trajet.</p>
+                </div>
+                <Button 
+                  variant="outline" 
+                  className="rounded-xl border-blue text-blue font-bold h-11 px-6 hover:bg-blue hover:text-white transition-all"
+                  onClick={() => {
+                    document.getElementById('passenger-form')?.scrollIntoView({ behavior: 'smooth' });
+                  }}
+                >
+                  Poursuivre la réservation
+                </Button>
+              </div>
+            )}
 
             <PassengerFormSection 
               data={passengerData} 
@@ -160,6 +185,22 @@ function BookingPage() {
           </div>
         </div>
       </div>
+
+      {journey.showSeatMap && (
+        <SeatMapModal
+          isOpen={isSeatModalOpen}
+          onClose={() => setIsSeatModalOpen(false)}
+          onConfirm={handleSeatConfirm}
+          journeyId={Number(journeyId)}
+          searchId={searchId}
+          nbrOfPassengers={searchParams.nbrOfPassengers}
+          companyName={journey.company.name}
+          busName={journey.bus.name}
+          fromCity={journey.from.cityName}
+          toCity={journey.to.cityName}
+          initialSelectedSeats={selectedSeat ? selectedSeat.split(',') : []}
+        />
+      )}
     </main>
   );
 }

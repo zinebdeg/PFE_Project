@@ -46,6 +46,7 @@ export async function apiRequest<T>(
 
   let lastError: Error | null = null;
   for (let attempt = 0; attempt < 3; attempt++) {
+    console.log(`[API] ${method} ${url}`);
     try {
       const res = await fetch(url, {
         method,

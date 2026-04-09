@@ -2,14 +2,19 @@ import { createServerFn } from "@tanstack/react-start";
 import { fetchSeatMap } from "../api/seat-map.api";
 
 export const getSeatMap = createServerFn({ method: "GET" })
-  .inputValidator((data: {
-    journeyId: number;
-    searchId: string;
-  }) => data)
   .handler(async (ctx) => {
     const data = ctx.data as unknown as {
       journeyId: number;
       searchId: string;
     };
-    return fetchSeatMap(data);
+    
+    console.log("[RPC] Fetching seat map for:", data);
+    try {
+      const result = await fetchSeatMap(data);
+      console.log("[RPC] Seat map result received successfully.");
+      return result;
+    } catch (error) {
+      console.error("[RPC] Seat map fetch error:", error);
+      throw error;
+    }
   });
