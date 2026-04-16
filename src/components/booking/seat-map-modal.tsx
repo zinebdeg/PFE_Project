@@ -39,6 +39,8 @@ export default function SeatMapModal({
     console.log("seatMap response:", seatData);
   }
 
+  const seatMap = seatData?.[0]?.seatMap;
+
   if (!isOpen) return null;
 
   const handleSeatClick = (seatIndex: string, type: string) => {
@@ -113,9 +115,16 @@ export default function SeatMapModal({
                 </div>
               ))}
             </div>
-          ) : seatData?.seatMap && seatData.seatMap.length > 0 ? (
+          ) : !seatMap || seatMap.length === 0 ? (
+            <div className="py-20 text-center">
+              <div className="w-16 h-16 bg-gray-light rounded-full flex items-center justify-center mx-auto mb-4">
+                <Info size={32} className="text-gray-body opacity-50" />
+              </div>
+              <p className="text-sm font-bold text-gray-body">Aucun siège disponible pour ce trajet.</p>
+            </div>
+          ) : (
             <div className="flex flex-col items-center gap-4">
-              {seatData.seatMap.map((row, rowIndex) => (
+              {seatMap.map((row, rowIndex) => (
                 <div key={rowIndex} className="flex gap-3">
                   {row.map((seat, colIndex) => {
                     const isSelected = selectedSeats.includes(seat.index);
@@ -146,10 +155,6 @@ export default function SeatMapModal({
                   })}
                 </div>
               ))}
-            </div>
-          ) : (
-            <div className="py-20 text-center">
-              <p className="text-sm font-bold text-gray-body">Aucun siège disponible pour ce trajet.</p>
             </div>
           )}
         </div>

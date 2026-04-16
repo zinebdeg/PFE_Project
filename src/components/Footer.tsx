@@ -10,10 +10,11 @@ export default function Footer() {
           {/* Company Info */}
           <div className="md:col-span-1">
             <div className="flex flex-col mb-4">
-              <span className="text-sm font-bold text-primary tracking-wide uppercase">
-                Pullman du Sud
-              </span>
-              <span className="text-[10px] text-gray-body">بولمان الجنوب</span>
+              <img 
+                src="/images/logo-pullman.png" 
+                alt="Pullman du Sud" 
+                className="h-16 w-auto object-contain self-start"
+              />
             </div>
             <p className="text-xs text-gray-body leading-relaxed mb-4">
               {COMPANY_INFO.description}

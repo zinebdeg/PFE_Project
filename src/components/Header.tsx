@@ -11,12 +11,11 @@ export default function Header() {
       <div className="container-app flex items-center justify-between h-16">
         {/* Logo */}
         <Link to="/" className="flex items-center gap-2 no-underline">
-          <div className="flex flex-col leading-tight">
-            <span className="text-sm font-bold text-primary tracking-wide uppercase">
-              Pullman du Sud
-            </span>
-            <span className="text-[10px] text-gray-body">بولمان الجنوب</span>
-          </div>
+          <img 
+            src="/images/logo-pullman.png" 
+            alt="Pullman du Sud" 
+            className="h-12 w-auto object-contain"
+          />
         </Link>
 
         {/* Desktop Nav */}
