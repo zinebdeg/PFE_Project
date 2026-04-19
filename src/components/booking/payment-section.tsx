@@ -1,5 +1,5 @@
 'use client';
-import { CreditCard, Wallet, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { CreditCard, Wallet, AlertCircle } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { useState } from 'react';
 
@@ -18,10 +18,8 @@ export default function PaymentSection({ onSelect }: PaymentSectionProps) {
   return (
     <div className="bg-white p-8 rounded-[32px] border border-gray-border shadow-sm mb-8">
       <div className="flex items-center gap-3 mb-8">
-        <div className="w-8 h-8 rounded-[8px] bg-dark text-white flex items-center justify-center">
-          <CreditCard size={16} />
-        </div>
-        <h2 className="text-xl font-black text-dark">Mode de paiement</h2>
+        <div className="w-10 h-10 rounded-xl bg-[#FF6900] text-white flex items-center justify-center font-bold shrink-0">3</div>
+        <h2 className="text-2xl font-black text-dark tracking-tight">Paiement</h2>
       </div>
 
       <div className="space-y-4">
@@ -30,13 +28,13 @@ export default function PaymentSection({ onSelect }: PaymentSectionProps) {
           onClick={() => handleSelect('card')}
           className={cn(
             "p-6 rounded-[24px] border-2 cursor-pointer transition-all",
-            method === 'card' ? "border-primary bg-primary/5" : "border-gray-border bg-white hover:border-gray-body/30"
+            method === 'card' ? "border-[#FF6900] bg-[#FF6900]/5" : "border-gray-border bg-white hover:border-gray-body/30"
           )}
         >
           <div className="flex items-center gap-4 mb-4">
             <div className={cn(
               "w-5 h-5 rounded-full border-2 flex items-center justify-center",
-              method === 'card' ? "border-primary bg-primary" : "border-gray-border"
+              method === 'card' ? "border-[#FF6900] bg-[#FF6900]" : "border-gray-border"
             )}>
               {method === 'card' && <div className="w-2 h-2 rounded-full bg-white" />}
             </div>
@@ -55,8 +53,8 @@ export default function PaymentSection({ onSelect }: PaymentSectionProps) {
               </p>
             </div>
             <div className="flex items-center gap-3 mt-2">
-              <span className="font-italic font-black text-blue tracking-tighter">VISA</span>
-              <span className="font-italic font-black text-red tracking-tighter">Mastercard</span>
+              <span className="font-italic font-black text-[#1A1F71] tracking-tighter">VISA</span>
+              <span className="font-italic font-black text-[#EB001B] tracking-tighter">Mastercard</span>
               <span className="font-black text-dark">CMI</span>
             </div>
           </div>
@@ -67,13 +65,13 @@ export default function PaymentSection({ onSelect }: PaymentSectionProps) {
           onClick={() => handleSelect('cash')}
           className={cn(
             "p-6 rounded-[24px] border-2 cursor-pointer transition-all",
-            method === 'cash' ? "border-primary bg-primary/5" : "border-gray-border bg-white hover:border-gray-body/30"
+            method === 'cash' ? "border-[#FF6900] bg-[#FF6900]/5" : "border-gray-border bg-white hover:border-gray-body/30"
           )}
         >
           <div className="flex items-center gap-4 mb-4">
             <div className={cn(
               "w-5 h-5 rounded-full border-2 flex items-center justify-center",
-              method === 'cash' ? "border-primary bg-primary" : "border-gray-border"
+              method === 'cash' ? "border-[#FF6900] bg-[#FF6900]" : "border-gray-border"
             )}>
               {method === 'cash' && <div className="w-2 h-2 rounded-full bg-white" />}
             </div>

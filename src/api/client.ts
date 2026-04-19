@@ -59,7 +59,9 @@ export async function apiRequest<T>(
       }
 
       if (res.status === 429 || res.status >= 500) {
-        lastError = new ApiError(res.status, 'retry', `API error ${res.status}`);
+        const text = await res.text().catch(() => 'No body');
+        console.error(`[API] Error ${res.status} body:`, text);
+        lastError = new ApiError(res.status, 'retry', `API error ${res.status}: ${text}`);
         await sleep(1000 * Math.pow(2, attempt));
         continue;
       }

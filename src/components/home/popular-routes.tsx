@@ -1,40 +1,66 @@
 import { POPULAR_ROUTES } from '#/lib/constants';
-import { ChevronRight } from 'lucide-react';
+import { ChevronRight, Loader2 } from 'lucide-react';
 import { Link } from '@tanstack/react-router';
+import { useCities } from '#/hooks/use-cities';
+import type { City } from '#/api/types';
 
 export default function PopularRoutes() {
+  const { data: cities = [], isLoading } = useCities() as { data: City[], isLoading: boolean };
+
+  const getCityId = (name: string) => {
+    // Normalize names for comparison (handle case and accents if necessary)
+    const normalizedName = name.toLowerCase().trim();
+    return cities.find(city => 
+      city.name.toLowerCase().trim() === normalizedName
+    )?.id || 0;
+  };
+
+  const today = new Date().toISOString().split('T')[0];
+
   return (
     <section className="py-24 bg-white">
       <div className="container-app">
         <div className="text-center mb-16">
-          <h2 className="text-3xl font-extrabold text-dark mb-4 drop-shadow-sm">Routes Populaires</h2>
-          <div className="w-20 h-1.5 bg-primary mx-auto rounded-full" />
+          <h2 className="text-4xl font-extrabold text-[#111827] mb-4">Routes Populaires</h2>
+          <p className="text-gray-500 font-medium">Découvrez nos trajets les plus demandés à travers le Royaume</p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-          {POPULAR_ROUTES.map((route, i) => (
-            <Link
-              key={i}
-              to="/search"
-              search={{
-                // Mapping should ideally use city IDs, but for popular routes mock search
-                // we'll just link to search page or specific IDs if known.
-                // Assuming IDs for Casablanca is 2, etc. based on Markoub API docs common IDs
-                departureCityId: route.from === 'Casablanca' ? 2 : 1, // Mock logic
-                arrivalCityId: route.to === 'Fes' ? 3 : 4,
-                date: new Date().toISOString().split('T')[0],
-                nbrOfPassengers: 1,
-              }}
-              className="flex items-center justify-between p-4 border border-gray-border rounded-xl hover:border-primary hover:bg-primary-light transition-all no-underline group"
-            >
-              <div className="flex flex-col">
-                <span className="text-xs font-bold text-gray-body group-hover:text-primary transition-colors">{route.from} à</span>
-                <span className="text-sm font-extrabold text-dark">{route.to}</span>
-              </div>
-              <ChevronRight size={18} className="text-gray-body group-hover:text-primary transition-all translate-x-0 group-hover:translate-x-1" />
-            </Link>
-          ))}
-        </div>
+        {isLoading ? (
+          <div className="flex justify-center py-20">
+            <Loader2 className="animate-spin text-primary" size={40} />
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-4">
+            {POPULAR_ROUTES.map((route, i) => {
+              const departureId = getCityId(route.from);
+              const arrivalId = getCityId(route.to);
+
+              return (
+                <Link
+                  key={i}
+                  to="/search"
+                  search={{
+                    departureCityId: departureId,
+                    arrivalCityId: arrivalId,
+                    date: today,
+                    nbrOfPassengers: 1,
+                  }}
+                  className="flex items-center justify-between p-5 bg-white border border-gray-100 rounded-2xl hover:border-primary hover:shadow-[0_10px_30px_rgba(0,0,0,0.05)] transition-all duration-300 group no-underline"
+                >
+                  <div className="flex items-center gap-2">
+                    <span className="text-[15px] font-semibold text-[#374151] group-hover:text-primary transition-colors">
+                      {route.from} <span className="text-gray-400 mx-1">à</span> {route.to}
+                    </span>
+                  </div>
+                  <ChevronRight 
+                    size={18} 
+                    className="text-gray-300 group-hover:text-primary transition-all group-hover:translate-x-1" 
+                  />
+                </Link>
+              );
+            })}
+          </div>
+        )}
       </div>
     </section>
   );

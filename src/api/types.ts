@@ -108,7 +108,7 @@ export interface JourneySearchResult {
 }
 
 export interface Seat {
-  type: 'selected' | 'available' | 'reserved' | 'empty' | 'closed';
+  type: 'selected' | 'available' | 'reserved' | 'empty' | 'closed' | 'space';
   index: string;
   seatNumber: number;
 }
@@ -143,6 +143,8 @@ export interface BookingRoute {
   type: string;
   isCancelled: boolean;
   seatMapShown: boolean;
+  companyName?: string;
+  busName?: string;
   departureLat: number;
   departureLng: number;
   arrivalLat: number;

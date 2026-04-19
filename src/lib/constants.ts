@@ -25,6 +25,14 @@ export const POPULAR_ROUTES = [
   { from: 'Rabat', to: 'Marrakech' },
   { from: 'Casablanca', to: 'Meknes' },
   { from: 'Rabat', to: 'Tanger' },
+  { from: 'Tanger', to: 'Casablanca' },
+  { from: 'Agadir', to: 'Casablanca' },
+  { from: 'Marrakech', to: 'Casablanca' },
+  { from: 'Fes', to: 'Marrakech' },
+  { from: 'Casablanca', to: 'Oujda' },
+  { from: 'Oujda', to: 'Casablanca' },
+  { from: 'Tanger', to: 'Marrakech' },
+  { from: 'Marrakech', to: 'Tanger' },
 ] as const
 
 export const STATS = [
@@ -39,28 +47,28 @@ export const SERVICES = [
     description:
       "La poursuite d'investissement dans le renouvellement de la flotte du parc de transport haut de gamme",
     icon: 'bus' as const,
-    color: '#/10B981',
+    color: '#10B981',
   },
   {
     title: 'Réseau',
     description:
       "Notre réseau de lignes de bus interurbaines couvre un large choix de destinations à l'intérieur du Royaume",
-    icon: 'network' as const,
-    color: '#/F97316',
+    icon: 'route' as const,
+    color: '#EF4444',
   },
   {
     title: 'Tourisme',
     description:
-      'Le transport touristique est un service qui a été spécialement conçu pour mettre à votre disposition nos autocars',
+      "Le transport touristique est un service qui a été spécialement conçu pour mettre à votre disposition nos autocars afin de répondre à vos besoins en location à travers le Maroc.",
     icon: 'globe' as const,
-    color: '#/3B82F6',
+    color: '#06B6D4',
   },
   {
     title: 'Messagerie',
     description:
-      "Nous mettons à votre disposition un réseau d'agences à travers le Maroc pour vos expéditions",
-    icon: 'mail' as const,
-    color: '#/8B5CF6',
+      "Nous mettons à votre disposition un réseau d'agences à travers le Maroc pour vos expéditions, quelque soit la nature de votre marchandise.",
+    icon: 'package' as const,
+    color: '#8B5CF6',
   },
 ] as const
 

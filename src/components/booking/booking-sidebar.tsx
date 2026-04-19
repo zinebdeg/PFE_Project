@@ -56,7 +56,7 @@ export default function BookingSidebar({ journey, searchId, passengerCount, serv
         
         <div className="p-8">
           <div className="flex flex-col gap-2 mb-6">
-            <h3 className="text-xl font-black text-blue flex items-center gap-2">
+            <h3 className="text-xl font-black text-[#FF6900] flex items-center gap-2">
               {journey.from.cityName}
               <span className="text-gray-body/30 font-light">→</span>
               {journey.to.cityName}
@@ -211,7 +211,7 @@ export default function BookingSidebar({ journey, searchId, passengerCount, serv
           <Button 
             onClick={onPay}
             disabled={loading}
-            className="w-full h-16 bg-blue hover:bg-blue/90 text-white font-black text-lg rounded-[20px] shadow-xl shadow-blue/20 transition-all active:scale-[0.98]"
+            className="w-full h-16 bg-[#FF6900] hover:bg-[#FF8000] text-white font-black text-lg rounded-[20px] shadow-xl shadow-orange-500/20 transition-all active:scale-[0.98]"
           >
             {loading ? 'Traitement...' : 'Passer au paiement'}
           </Button>

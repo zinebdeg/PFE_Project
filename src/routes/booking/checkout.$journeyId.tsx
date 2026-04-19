@@ -1,8 +1,9 @@
 import { createFileRoute, useNavigate, Link } from '@tanstack/react-router';
 import { useJourneySearch } from '../../hooks/use-journeys';
-import { useCreateBooking } from '../../hooks/use-booking';
+import { useCreateBooking, useMarkBookingPaid } from '../../hooks/use-booking';
 import { useState, useMemo } from 'react';
-import { Phone } from 'lucide-react';
+import { Phone, Loader2 } from 'lucide-react';
+import { cn } from '../../lib/utils';
 import { Button } from '../../components/ui/button';
 import { Skeleton } from '../../components/ui/skeleton';
 
@@ -32,7 +33,9 @@ function BookingPage() {
   const searchParams = Route.useSearch();
   const { searchId, selectedSeat } = searchParams;
   const navigate = useNavigate();
+
   const createBookingMutation = useCreateBooking();
+  const markPaidMutation = useMarkBookingPaid();
 
   const [passengerData, setPassengerData] = useState({
     name: '',
@@ -40,6 +43,8 @@ function BookingPage() {
     phone: '',
   });
   const [paymentMethod, setPaymentMethod] = useState<'card' | 'cash'>('card');
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [processingStep, setProcessingStep] = useState<'creating' | 'paying' | null>(null);
   const [isSeatModalOpen, setIsSeatModalOpen] = useState(false);
 
   // Using the search hook with the parameters passed from search results
@@ -51,10 +56,13 @@ function BookingPage() {
     previousSearchId: searchId,
   });
 
-  const journey = useMemo(() => 
+  const journey = useMemo(() =>
     searchResult?.journeys.find(j => j.id.toString() === journeyId),
     [searchResult, journeyId]
   );
+
+  const hasSeatMap = journey?.showSeatMap === true;
+  console.log("[DEBUG] showSeatMap:", journey?.showSeatMap);
 
   const handleSeatConfirm = (seats: string[]) => {
     navigate({
@@ -65,31 +73,64 @@ function BookingPage() {
     setIsSeatModalOpen(false);
   };
 
-  const handlePay = async () => {
-    if (!journey || !passengerData.name || !passengerData.email || !passengerData.phone) {
-      alert('Veuillez remplir tous les champs obligatoires.');
+  const handleProcessBooking = async () => {
+    if (!passengerData.name || !passengerData.email || !passengerData.phone) {
+      alert('Veuillez remplir toutes les informations passager.');
       return;
     }
 
+    // Strict validation logic for seat selection
+    if (hasSeatMap) {
+      if (!selectedSeat) {
+        alert('Veuillez sélectionner vos sièges avant de continuer.');
+        return;
+      }
+
+      const selectedSeatsCount = selectedSeat.split(',').filter(Boolean).length;
+      if (selectedSeatsCount !== searchParams.nbrOfPassengers) {
+        alert(`Veuillez sélectionner exactement ${searchParams.nbrOfPassengers} siège(s). (Actuellement: ${selectedSeatsCount})`);
+        return;
+      }
+    }
+
+    setIsProcessing(true);
+    setProcessingStep('creating');
+
     try {
-      const response = await createBookingMutation.mutateAsync({
-        journeyId: journey.id.toString(),
-        searchId: searchId,
+      // Step 1: Create Booking
+      const booking = await createBookingMutation.mutateAsync({
+        journeyId: journeyId,
+        searchId: searchResult?.searchId || searchId,
         name: passengerData.name,
         email: passengerData.email,
         phone: passengerData.phone,
+        // Send actual selected seats or empty array if not supported
         seats: selectedSeat ? selectedSeat.split(',').map(Number) : [],
       });
 
-      if (response && response.code) {
+      if (booking && booking.code) {
+        setProcessingStep('paying');
+
+        // Step 2: Handle Payment (Simulation based on the retrieved code/token)
+        await markPaidMutation.mutateAsync({
+          code: booking.code,
+          paidPrice: booking.totalPrice.toString(),
+          referenceNumber: 'REF-' + Math.random().toString(36).substring(7).toUpperCase(),
+          additionalInfo: `Paiement ${paymentMethod === 'card' ? 'par Carte' : 'en Espèces'} - Token: ${booking.paymentToken}`,
+        });
+
+        // Step 3: Redirect to Confirmation
         navigate({
           to: '/booking/$bookingCode',
-          params: { bookingCode: response.code },
+          params: { bookingCode: booking.code },
         });
       }
     } catch (e) {
+      alert('Une erreur est survenue lors de la réservation. Veuillez réessayer.');
       console.error(e);
-      alert('Erreur lors de la réservation.');
+    } finally {
+      setIsProcessing(false);
+      setProcessingStep(null);
     }
   };
 
@@ -117,17 +158,42 @@ function BookingPage() {
 
   return (
     <main className="min-h-screen pt-10 pb-20 bg-gray-light/10">
+      {/* Processing Overlay */}
+      {isProcessing && (
+        <div className="fixed inset-0 bg-dark/60 backdrop-blur-sm z-[100] flex items-center justify-center transition-all animate-in fade-in">
+          <div className="bg-white p-10 rounded-[40px] shadow-2xl flex flex-col items-center gap-6 max-w-sm w-full mx-4 rise-in">
+            <div className="relative">
+              <div className="w-20 h-20 rounded-full border-4 border-primary/20 border-t-primary animate-spin" />
+              <div className="absolute inset-0 flex items-center justify-center">
+                <Loader2 className="text-primary animate-pulse" size={32} />
+              </div>
+            </div>
+            <div className="text-center">
+              <h3 className="text-2xl font-black text-dark mb-2 tracking-tight">
+                {processingStep === 'creating' ? 'Réservation en cours' : 'Traitement du paiement'}
+              </h3>
+              <p className="text-sm text-gray-body font-medium leading-relaxed">
+                {processingStep === 'creating'
+                  ? 'Nous préparons votre billet...'
+                  : 'Sécurisation de la transaction avec votre banque...'}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="container-app">
-        
         {/* Page Grid - Modern 2-Column Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-          
+
           {/* MAIN COLUMN (LEFT): Seat Card, Passenger Form, Payment Section */}
           <div className="lg:col-span-8 flex flex-col gap-6">
-            {journey.showSeatMap ? (
-              <SeatSelectionCard 
-                selectedSeat={selectedSeat} 
-                onClick={() => setIsSeatModalOpen(true)} 
+            {hasSeatMap ? (
+              <SeatSelectionCard
+                selectedSeat={selectedSeat}
+                onClick={() => setIsSeatModalOpen(true)}
+                fromCity={journey.from.cityName}
+                toCity={journey.to.cityName}
               />
             ) : (
               <div className="p-6 rounded-[24px] border border-blue/20 bg-blue/5 flex items-center justify-between mb-6 shadow-sm">
@@ -135,9 +201,9 @@ function BookingPage() {
                   <h3 className="text-sm font-black text-dark tracking-tight">Sélection de siège</h3>
                   <p className="text-xs font-bold text-gray-body">Le choix de siège n'est pas disponible pour ce trajet.</p>
                 </div>
-                <Button 
-                  variant="outline" 
-                  className="rounded-xl border-blue text-blue font-bold h-11 px-6 hover:bg-blue hover:text-white transition-all"
+                <Button
+                  variant="outline"
+                  className="rounded-xl border-[#FF6900] text-[#FF6900] font-bold h-11 px-6 hover:bg-[#FF6900] hover:text-white transition-all"
                   onClick={() => {
                     document.getElementById('passenger-form')?.scrollIntoView({ behavior: 'smooth' });
                   }}
@@ -147,52 +213,37 @@ function BookingPage() {
               </div>
             )}
 
-            <PassengerFormSection 
-              data={passengerData} 
-              onChange={(f, v) => setPassengerData(p => ({ ...p, [f]: v }))} 
+            <PassengerFormSection
+              data={passengerData}
+              onChange={(f, v) => setPassengerData(p => ({ ...p, [f]: v }))}
             />
 
-            <PaymentSection 
-              onSelect={(m) => setPaymentMethod(m)} 
+            <PaymentSection
+              onSelect={(m) => setPaymentMethod(m)}
             />
           </div>
 
           {/* SIDEBAR (RIGHT SIDE): Journey summary & Price box */}
           <div className="lg:col-span-4 sticky top-24 space-y-6">
-            <BookingSidebar 
+            <BookingSidebar
               journey={journey}
               searchId={searchId}
               passengerCount={searchParams.nbrOfPassengers}
-              serviceFee={5.00}
-              onPay={handlePay}
-              loading={createBookingMutation.isPending}
+              serviceFee={5}
+              onPay={handleProcessBooking}
+              loading={isProcessing}
             />
-            
-            <div className="bg-[#f0f7ff] p-8 rounded-[32px] border border-blue/10 flex flex-col gap-4 rise-in delay-100">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-[16px] bg-blue text-white flex items-center justify-center shrink-0 shadow-lg shadow-blue/20">
-                  <Phone size={24} />
-                </div>
-                <div className="flex flex-col">
-                  <span className="text-[10px] font-black text-blue uppercase tracking-widest leading-none mb-1">Besoin d'aide ?</span>
-                  <span className="text-xl font-black text-dark tracking-tight">05 3000 3000</span>
-                </div>
-              </div>
-              <p className="text-[11px] text-gray-body font-medium leading-relaxed">
-                Notre équipe est disponible 24/7 pour vous accompagner dans votre réservation.
-              </p>
-            </div>
           </div>
         </div>
       </div>
 
-      {journey.showSeatMap && (
+      {hasSeatMap && (
         <SeatMapModal
           isOpen={isSeatModalOpen}
           onClose={() => setIsSeatModalOpen(false)}
           onConfirm={handleSeatConfirm}
           journeyId={Number(journeyId)}
-          searchId={searchId}
+          searchId={searchResult?.searchId || searchId}
           nbrOfPassengers={searchParams.nbrOfPassengers}
           companyName={journey.company.name}
           busName={journey.bus.name}
@@ -204,4 +255,3 @@ function BookingPage() {
     </main>
   );
 }
-
