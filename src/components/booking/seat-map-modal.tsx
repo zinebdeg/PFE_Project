@@ -210,7 +210,11 @@ export default function SeatMapModal({
   const seatMapData = useMemo(() => {
     if (!seatData) return null;
     
-    // Helper to find the object containing seatMap in any structure
+    // LE SCANNER RÉCURSIF :
+    // Selon la compagnie de bus (CTM, Ghazala, etc.), l'API Markoub renvoie les données de sièges 
+    // dans des formats différents (ex: directement dans un tableau, encapsulé dans "data", ou dans "result").
+    // Cette fonction explore intelligemment l'objet JSON retourné jusqu'à trouver la propriété `seatMap`,
+    // ce qui évite les plantages ou les écrans vides.
     const findSeatSource = (obj: any): any => {
       if (!obj || typeof obj !== 'object') return null;
       if (Array.isArray(obj.seatMap)) return obj;

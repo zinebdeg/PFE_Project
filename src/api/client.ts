@@ -45,6 +45,11 @@ export async function apiRequest<T>(
   };
 
   let lastError: Error | null = null;
+  
+  // SYSTÈME DE RÉESSAI AUTOMATIQUE (RETRY AVEC BACKOFF EXPONENTIEL) :
+  // L'API externe (Markoub) peut parfois être surchargée (erreur 429) ou indisponible (erreur 5xx).
+  // Au lieu d'afficher une erreur à l'utilisateur, notre serveur tente de renvoyer la requête 
+  // jusqu'à 3 fois en attendant de plus en plus longtemps entre chaque tentative (1s, 2s, 4s).
   for (let attempt = 0; attempt < 3; attempt++) {
     console.log(`[API] ${method} ${url}`);
     try {
@@ -58,6 +63,8 @@ export async function apiRequest<T>(
         return (await res.json()) as T;
       }
 
+      // Si c'est une erreur de surcharge (429) ou une erreur serveur interne (500+),
+      // on la capture, on attend, et la boucle 'for' recommence (continue).
       if (res.status === 429 || res.status >= 500) {
         const text = await res.text().catch(() => 'No body');
         console.error(`[API] Error ${res.status} body:`, text);

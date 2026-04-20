@@ -16,8 +16,8 @@ export default function JourneyCard({
     <div className="bg-white border text-left border-gray-200 rounded-[20px] p-6 mb-4 flex flex-col gap-6 shadow-sm hover:shadow-md transition-shadow">
       {/* Top Row: Company & Price */}
       <div className="flex justify-between items-center">
-        <div className="flex items-center gap-3">
-          <img src={journey.company.logo} alt={journey.company.name} className="h-6 object-contain" />
+        <div className="flex items-center gap-4">
+          <img src={journey.company.logo} alt={journey.company.name} className="h-14 object-contain" />
           <span className="text-sm font-bold text-gray-900">{journey.company.name} - بولمان الجنوب</span>
         </div>
         

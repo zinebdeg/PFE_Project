@@ -15,6 +15,7 @@ interface BookingSidebarProps {
 
 export default function BookingSidebar({ journey, searchId, passengerCount, serviceFee, onPay, loading }: BookingSidebarProps) {
   const [isExpanded, setIsExpanded] = useState(false);
+  const [termsAccepted, setTermsAccepted] = useState(false);
   const ticketTotal = journey.price.total * passengerCount;
   const grandTotal = ticketTotal + serviceFee;
 
@@ -199,17 +200,26 @@ export default function BookingSidebar({ journey, searchId, passengerCount, serv
             <span className="text-xl font-black text-dark tracking-tight">{grandTotal.toFixed(2)} Dhs</span>
           </div>
 
-          <div className="flex items-start gap-3 py-2">
-            <div className="w-5 h-5 rounded-md border-2 border-gray-border border-dashed flex items-center justify-center cursor-pointer hover:border-primary">
-              <CheckCircle2 size={12} className="text-white fill-white" />
+          <div className="flex items-start gap-3 py-2" onClick={() => setTermsAccepted(!termsAccepted)}>
+            <div className={cn(
+              "w-5 h-5 rounded-md border-2 flex items-center justify-center cursor-pointer transition-colors shrink-0",
+              termsAccepted ? "bg-primary border-primary" : "border-gray-border hover:border-primary border-dashed"
+            )}>
+              {termsAccepted && <CheckCircle2 size={14} className="text-white" />}
             </div>
-            <p className="text-[10px] text-gray-body leading-tight">
-              J'ai lu et j'accepte les <a href="#" className="text-blue underline">Conditions de vente et d'utilisation</a>, notamment la mention relative à la protection des données personnelles.
+            <p className="text-[10px] text-gray-body leading-tight cursor-pointer">
+              J'ai lu et j'accepte les <a href="#" className="text-blue underline" onClick={(e) => e.stopPropagation()}>Conditions de vente et d'utilisation</a>, notamment la mention relative à la protection des données personnelles.
             </p>
           </div>
 
           <Button 
-            onClick={onPay}
+            onClick={() => {
+              if (!termsAccepted) {
+                alert("Veuillez accepter les Conditions de vente et d'utilisation avant de procéder au paiement.");
+                return;
+              }
+              onPay();
+            }}
             disabled={loading}
             className="w-full h-16 bg-[#FF6900] hover:bg-[#FF8000] text-white font-black text-lg rounded-[20px] shadow-xl shadow-orange-500/20 transition-all active:scale-[0.98]"
           >

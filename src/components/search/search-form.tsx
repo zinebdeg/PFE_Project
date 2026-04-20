@@ -23,6 +23,9 @@ export default function SearchForm({
   initialPassengers = 1 
 }: SearchFormProps = {}) {
   const navigate = useNavigate();
+  // APPEL À L'API :
+  // useCities() est notre hook personnalisé (qui utilise React Query) pour interroger
+  // la fonction RPC getCities(). Si les données sont en train de charger, `cities` sera un tableau vide.
   const { data: cities = [] } = useCities();
   
   const [fromId, setFromId] = useState<number | undefined>(initialFromId);
@@ -37,6 +40,10 @@ export default function SearchForm({
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showReturnPicker, setShowReturnPicker] = useState(false);
 
+  // GESTIONNAIRE DE SOUMISSION DU FORMULAIRE :
+  // Quand l'utilisateur clique sur "Trouver mon ticket", on vérifie que les villes
+  // sont sélectionnées, puis on navigue vers la page `/search` en injectant
+  // les critères de recherche dans l'URL (ex: /search?departureCityId=1&arrivalCityId=2&date=...)
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (!fromId || !toId) return;
@@ -71,6 +78,9 @@ export default function SearchForm({
     }
   }, [cities, toId]);
 
+  // LOGIQUE DE RECHERCHE LOCALE (FILTRAGE) :
+  // Pour éviter d'afficher 100 villes, on filtre le tableau `cities` (téléchargé depuis l'API)
+  // en temps réel selon ce que l'utilisateur tape dans l'input (fromSearchText).
   const filteredFromCities = cities.filter((c: City) => c.name.toLowerCase().includes(fromSearchText.toLowerCase()));
   const filteredToCities = cities.filter((c: City) => c.name.toLowerCase().includes(toSearchText.toLowerCase()));
 

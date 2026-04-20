@@ -192,7 +192,7 @@ export interface CreateBookingParams {
   name: string;
   phone: string;
   email: string;
-  seats: number[];
+  seats?: number[];
 }
 
 export interface SearchParams {

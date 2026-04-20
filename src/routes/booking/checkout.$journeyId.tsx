@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate, Link } from '@tanstack/react-router';
 import { useJourneySearch } from '../../hooks/use-journeys';
 import { useCreateBooking, useMarkBookingPaid } from '../../hooks/use-booking';
+import { getSeatMap } from '../../rpc/seat-map';
 import { useState, useMemo } from 'react';
 import { Phone, Loader2 } from 'lucide-react';
 import { cn } from '../../lib/utils';
@@ -47,7 +48,10 @@ function BookingPage() {
   const [processingStep, setProcessingStep] = useState<'creating' | 'paying' | null>(null);
   const [isSeatModalOpen, setIsSeatModalOpen] = useState(false);
 
-  // Using the search hook with the parameters passed from search results
+  // REQUÊTE EN ARRIÈRE-PLAN (BACKGROUND REFETCH) :
+  // On utilise useJourneySearch ici pour s'assurer que la session de recherche (searchId) 
+  // ne va pas expirer si l'utilisateur met du temps à remplir le formulaire.
+  // L'API Markoub renouvelle le searchId silencieusement.
   const { data: searchResult, isLoading } = useJourneySearch({
     departureCityId: searchParams.departureCityId,
     arrivalCityId: searchParams.arrivalCityId,
@@ -79,13 +83,10 @@ function BookingPage() {
       return;
     }
 
-    // Strict validation logic for seat selection
-    if (hasSeatMap) {
-      if (!selectedSeat) {
-        alert('Veuillez sélectionner vos sièges avant de continuer.');
-        return;
-      }
-
+    // Validation optionnelle des sièges :
+    // Si l'utilisateur n'a pas sélectionné de sièges, l'API Markoub assignera des sièges par défaut.
+    // S'il en a sélectionné, on vérifie qu'il a bien sélectionné le bon nombre.
+    if (hasSeatMap && selectedSeat) {
       const selectedSeatsCount = selectedSeat.split(',').filter(Boolean).length;
       if (selectedSeatsCount !== searchParams.nbrOfPassengers) {
         alert(`Veuillez sélectionner exactement ${searchParams.nbrOfPassengers} siège(s). (Actuellement: ${selectedSeatsCount})`);
@@ -97,21 +98,71 @@ function BookingPage() {
     setProcessingStep('creating');
 
     try {
-      // Step 1: Create Booking
+      let autoAssignedSeats: number[] = [];
+
+      // Si le trajet nécessite des sièges mais que l'utilisateur n'en a pas sélectionné
+      if (hasSeatMap && !selectedSeat) {
+        const freshSearchId = searchResult?.searchId || searchId;
+        const seatMapResponse = await getSeatMap({ data: { journeyId: Number(journeyId), searchId: freshSearchId } });
+        
+        // Logique du scanner récursif pour extraire le plan
+        const findSeatSource = (obj: any): any => {
+          if (!obj || typeof obj !== 'object') return null;
+          if (Array.isArray(obj.seatMap)) return obj;
+          if (Array.isArray(obj)) {
+            for (const item of obj) {
+              const found = findSeatSource(item);
+              if (found) return found;
+            }
+          }
+          if (obj.data) return findSeatSource(obj.data);
+          if (obj.result) return findSeatSource(obj.result);
+          return null;
+        };
+
+        const source = findSeatSource(seatMapResponse);
+        if (source && source.seatMap) {
+          const availableSeats: number[] = [];
+          source.seatMap.forEach((row: any[]) => {
+            row.forEach((seat: any) => {
+              if (seat && seat.type === 'available' && seat.seatNumber) {
+                availableSeats.push(seat.seatNumber);
+              }
+            });
+          });
+
+          if (availableSeats.length >= searchParams.nbrOfPassengers) {
+            autoAssignedSeats = availableSeats.slice(0, searchParams.nbrOfPassengers);
+          } else {
+            alert("Désolé, il n'y a pas assez de sièges disponibles pour votre groupe.");
+            setIsProcessing(false);
+            setProcessingStep(null);
+            return;
+          }
+        }
+      }
+
+      const finalSeats = selectedSeat 
+        ? selectedSeat.split(',').map(Number) 
+        : autoAssignedSeats;
+
+      // ÉTAPE 1 : CRÉATION DE LA RÉSERVATION (TRANSACTIONNEL)
+      // Appel RPC sécurisé (qui contacte l'API Markoub via le serveur)
+      // On utilise 'searchResult?.searchId' pour garantir l'utilisation d'une session fraîche.
       const booking = await createBookingMutation.mutateAsync({
         journeyId: journeyId,
         searchId: searchResult?.searchId || searchId,
         name: passengerData.name,
         email: passengerData.email,
         phone: passengerData.phone,
-        // Send actual selected seats or empty array if not supported
-        seats: selectedSeat ? selectedSeat.split(',').map(Number) : [],
+        ...(finalSeats.length > 0 ? { seats: finalSeats } : {}),
       });
 
       if (booking && booking.code) {
         setProcessingStep('paying');
 
-        // Step 2: Handle Payment (Simulation based on the retrieved code/token)
+        // ÉTAPE 2 : PAIEMENT (EXÉCUTÉ SÉQUENTIELLEMENT UNIQUEMENT SI L'ÉTAPE 1 A RÉUSSI)
+        // Utilise le token de paiement unique généré lors de la création de la réservation
         await markPaidMutation.mutateAsync({
           code: booking.code,
           paidPrice: booking.totalPrice.toString(),
