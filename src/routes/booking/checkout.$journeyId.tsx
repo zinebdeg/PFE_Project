@@ -3,7 +3,7 @@ import { useJourneySearch } from '../../hooks/use-journeys';
 import { useCreateBooking, useMarkBookingPaid } from '../../hooks/use-booking';
 import { getSeatMap } from '../../rpc/seat-map';
 import { useState, useMemo } from 'react';
-import { Phone, Loader2 } from 'lucide-react';
+import { Phone, Loader2, AlertCircle } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { Button } from '../../components/ui/button';
 import { Skeleton } from '../../components/ui/skeleton';
@@ -47,6 +47,12 @@ function BookingPage() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [processingStep, setProcessingStep] = useState<'creating' | 'paying' | null>(null);
   const [isSeatModalOpen, setIsSeatModalOpen] = useState(false);
+  const [toastError, setToastError] = useState<string | null>(null);
+
+  const showErrorToast = (msg: string) => {
+    setToastError(msg);
+    setTimeout(() => setToastError(null), 4000);
+  };
 
   // REQUÊTE EN ARRIÈRE-PLAN (BACKGROUND REFETCH) :
   // On utilise useJourneySearch ici pour s'assurer que la session de recherche (searchId) 
@@ -79,7 +85,7 @@ function BookingPage() {
 
   const handleProcessBooking = async () => {
     if (!passengerData.name || !passengerData.email || !passengerData.phone) {
-      alert('Veuillez remplir toutes les informations passager.');
+      showErrorToast('Veuillez remplir toutes les informations passager.');
       return;
     }
 
@@ -89,7 +95,7 @@ function BookingPage() {
     if (hasSeatMap && selectedSeat) {
       const selectedSeatsCount = selectedSeat.split(',').filter(Boolean).length;
       if (selectedSeatsCount !== searchParams.nbrOfPassengers) {
-        alert(`Veuillez sélectionner exactement ${searchParams.nbrOfPassengers} siège(s). (Actuellement: ${selectedSeatsCount})`);
+        showErrorToast(`Veuillez sélectionner exactement ${searchParams.nbrOfPassengers} siège(s). (Actuellement: ${selectedSeatsCount})`);
         return;
       }
     }
@@ -134,11 +140,16 @@ function BookingPage() {
           if (availableSeats.length >= searchParams.nbrOfPassengers) {
             autoAssignedSeats = availableSeats.slice(0, searchParams.nbrOfPassengers);
           } else {
-            alert("Désolé, il n'y a pas assez de sièges disponibles pour votre groupe.");
+            showErrorToast("Désolé, il n'y a pas assez de sièges disponibles pour votre groupe.");
             setIsProcessing(false);
             setProcessingStep(null);
             return;
           }
+        } else {
+           showErrorToast("Impossible de récupérer le plan des sièges pour l'assignation automatique.");
+           setIsProcessing(false);
+           setProcessingStep(null);
+           return;
         }
       }
 
@@ -177,7 +188,7 @@ function BookingPage() {
         });
       }
     } catch (e) {
-      alert('Une erreur est survenue lors de la réservation. Veuillez réessayer.');
+      showErrorToast('Une erreur est survenue lors de la réservation. Veuillez réessayer.');
       console.error(e);
     } finally {
       setIsProcessing(false);
@@ -302,6 +313,18 @@ function BookingPage() {
           toCity={journey.to.cityName}
           initialSelectedSeats={selectedSeat ? selectedSeat.split(',') : []}
         />
+      )}
+
+      {/* Custom Markoub-style Toast Error for Checkout */}
+      {toastError && (
+        <div className="fixed bottom-6 right-6 z-[100] animate-in fade-in slide-in-from-bottom-5 duration-300">
+          <div className="bg-[#fff1f2] border border-[#fecdd3] px-6 py-4 rounded-xl shadow-xl flex items-center gap-3 max-w-sm">
+            <AlertCircle size={22} className="text-[#e11d48] shrink-0 fill-red-100" />
+            <p className="text-[#e11d48] font-semibold text-sm">
+              {toastError}
+            </p>
+          </div>
+        </div>
       )}
     </main>
   );

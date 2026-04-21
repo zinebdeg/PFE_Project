@@ -1,5 +1,6 @@
-import { createFileRoute } from '@tanstack/react-router';
+import { createFileRoute, useNavigate, Link } from '@tanstack/react-router';
 import { useBooking, useCancelBooking } from '../../hooks/use-booking';
+import { useState } from 'react';
 import { Button } from '../../components/ui/button';
 import { Skeleton } from '../../components/ui/skeleton';
 import { 
@@ -18,7 +19,7 @@ import {
   CreditCard
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
-import { Link } from '@tanstack/react-router';
+
 
 export const Route = createFileRoute('/booking/$bookingCode')({
   component: BookingConfirmation,
@@ -28,13 +29,33 @@ function BookingConfirmation() {
   const { bookingCode } = Route.useParams();
   const { data: booking, isLoading, error } = useBooking(bookingCode);
   const cancelBookingMutation = useCancelBooking();
+  const navigate = useNavigate();
   
-  const handleCancel = async () => {
-    if (!confirm('Voulez-vous vraiment annuler cette réservation ?')) return;
+  const [showCancelModal, setShowCancelModal] = useState(false);
+  const [isCancelling, setIsCancelling] = useState(false);
+  const [toastError, setToastError] = useState<string | null>(null);
+
+  const showErrorToast = (msg: string) => {
+    setToastError(msg);
+    setTimeout(() => setToastError(null), 4000);
+  };
+  
+  const handleCancel = () => {
+    setShowCancelModal(true);
+  };
+
+  const confirmCancel = async () => {
+    setIsCancelling(true);
     try {
       await cancelBookingMutation.mutateAsync(bookingCode);
+      setShowCancelModal(false);
+      // Redirect to home page upon successful cancellation
+      navigate({ to: '/' });
     } catch (e) {
-      alert('Erreur lors de l\'annulation');
+      setShowCancelModal(false);
+      showErrorToast("Erreur lors de l'annulation de la réservation. Veuillez réessayer.");
+    } finally {
+      setIsCancelling(false);
     }
   };
 
@@ -263,8 +284,54 @@ function BookingConfirmation() {
           </div>
 
         </div>
-
       </div>
+
+      {/* Modern Cancel Confirmation Modal */}
+      {showCancelModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-dark/40 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white rounded-[24px] shadow-2xl max-w-md w-full overflow-hidden animate-in zoom-in-95 duration-200">
+            <div className="p-8 text-center">
+              <div className="w-16 h-16 bg-red/10 rounded-full flex items-center justify-center mx-auto mb-6">
+                <AlertCircle size={32} className="text-red" />
+              </div>
+              <h3 className="text-2xl font-black text-dark mb-3 tracking-tight">Annuler la réservation ?</h3>
+              <p className="text-gray-body mb-8 text-sm">
+                Êtes-vous sûr de vouloir annuler la réservation <span className="font-bold text-dark">{booking.code}</span> ? Cette action est irréversible et les sièges seront libérés.
+              </p>
+              
+              <div className="flex gap-4">
+                <Button 
+                  variant="outline" 
+                  onClick={() => setShowCancelModal(false)}
+                  disabled={isCancelling}
+                  className="flex-1 h-12 rounded-xl font-bold border-gray-border text-gray-body hover:bg-gray-light"
+                >
+                  Non, conserver
+                </Button>
+                <Button 
+                  onClick={confirmCancel}
+                  disabled={isCancelling}
+                  className="flex-1 h-12 rounded-xl font-black bg-red hover:bg-red/90 text-white shadow-lg shadow-red/20"
+                >
+                  {isCancelling ? 'Annulation...' : 'Oui, annuler'}
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Custom Markoub-style Toast Error */}
+      {toastError && (
+        <div className="fixed bottom-6 right-6 z-[100] animate-in fade-in slide-in-from-bottom-5 duration-300">
+          <div className="bg-[#fff1f2] border border-[#fecdd3] px-6 py-4 rounded-xl shadow-xl flex items-center gap-3 max-w-sm">
+            <AlertCircle size={22} className="text-[#e11d48] shrink-0 fill-red-100" />
+            <p className="text-[#e11d48] font-semibold text-sm">
+              {toastError}
+            </p>
+          </div>
+        </div>
+      )}
     </main>
   );
 }

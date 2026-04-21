@@ -1,4 +1,4 @@
-import { Bus, Clock, Info, CheckCircle2, ChevronDown, ChevronUp, Map, Thermometer, Briefcase, Sun, ShieldPlus } from 'lucide-react';
+import { Bus, Clock, Info, CheckCircle2, ChevronDown, ChevronUp, Map, Thermometer, Briefcase, Sun, ShieldPlus, AlertCircle } from 'lucide-react';
 import { Button } from '../ui/button';
 import type { Journey } from '../../api/types';
 import { useState } from 'react';
@@ -16,6 +16,7 @@ interface BookingSidebarProps {
 export default function BookingSidebar({ journey, searchId, passengerCount, serviceFee, onPay, loading }: BookingSidebarProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(false);
+  const [showError, setShowError] = useState(false);
   const ticketTotal = journey.price.total * passengerCount;
   const grandTotal = ticketTotal + serviceFee;
 
@@ -200,7 +201,10 @@ export default function BookingSidebar({ journey, searchId, passengerCount, serv
             <span className="text-xl font-black text-dark tracking-tight">{grandTotal.toFixed(2)} Dhs</span>
           </div>
 
-          <div className="flex items-start gap-3 py-2" onClick={() => setTermsAccepted(!termsAccepted)}>
+          <div className="flex items-start gap-3 py-2" onClick={() => {
+            setTermsAccepted(!termsAccepted);
+            if (!termsAccepted) setShowError(false); // Hide error if user checks the box
+          }}>
             <div className={cn(
               "w-5 h-5 rounded-md border-2 flex items-center justify-center cursor-pointer transition-colors shrink-0",
               termsAccepted ? "bg-primary border-primary" : "border-gray-border hover:border-primary border-dashed"
@@ -215,7 +219,9 @@ export default function BookingSidebar({ journey, searchId, passengerCount, serv
           <Button 
             onClick={() => {
               if (!termsAccepted) {
-                alert("Veuillez accepter les Conditions de vente et d'utilisation avant de procéder au paiement.");
+                setShowError(true);
+                // Auto hide the error after 4 seconds
+                setTimeout(() => setShowError(false), 4000);
                 return;
               }
               onPay();
@@ -227,6 +233,18 @@ export default function BookingSidebar({ journey, searchId, passengerCount, serv
           </Button>
         </div>
       </div>
+
+      {/* Custom Markoub-style Toast Error */}
+      {showError && (
+        <div className="fixed bottom-6 right-6 z-[100] animate-in fade-in slide-in-from-bottom-5 duration-300">
+          <div className="bg-[#fff1f2] border border-[#fecdd3] px-6 py-4 rounded-xl shadow-xl flex items-center gap-3 max-w-sm">
+            <AlertCircle size={22} className="text-[#e11d48] shrink-0 fill-red-100" />
+            <p className="text-[#e11d48] font-semibold text-sm">
+              Veuillez remplir tous les champs requis.
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
