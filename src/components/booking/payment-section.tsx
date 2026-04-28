@@ -1,5 +1,5 @@
 'use client';
-import { CreditCard, Wallet, AlertCircle } from 'lucide-react';
+import { CreditCard, Wallet, AlertTriangle, Lock } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { useState } from 'react';
 
@@ -16,10 +16,12 @@ export default function PaymentSection({ onSelect }: PaymentSectionProps) {
   };
 
   return (
-    <div className="bg-white p-8 rounded-[32px] border border-gray-border shadow-sm mb-8">
-      <div className="flex items-center gap-3 mb-8">
-        <div className="w-10 h-10 rounded-xl bg-[#FF6900] text-white flex items-center justify-center font-bold shrink-0">3</div>
-        <h2 className="text-2xl font-black text-dark tracking-tight">Paiement</h2>
+    <div className="mb-8">
+      <div className="flex items-center gap-3 mb-6">
+        <div className="w-8 h-8 rounded border border-gray-900 flex items-center justify-center shrink-0">
+          <Lock size={18} className="text-gray-900" />
+        </div>
+        <h2 className="text-lg font-bold text-gray-900">Mode de paiement</h2>
       </div>
 
       <div className="space-y-4">
@@ -27,67 +29,69 @@ export default function PaymentSection({ onSelect }: PaymentSectionProps) {
         <div 
           onClick={() => handleSelect('card')}
           className={cn(
-            "p-6 rounded-[24px] border-2 cursor-pointer transition-all",
-            method === 'card' ? "border-[#FF6900] bg-[#FF6900]/5" : "border-gray-border bg-white hover:border-gray-body/30"
+            "p-5 rounded-xl border cursor-pointer transition-all",
+            method === 'card' ? "border-gray-900 bg-white" : "border-gray-200 bg-white hover:border-gray-300"
           )}
         >
-          <div className="flex items-center gap-4 mb-4">
+          <div className="flex items-center gap-3 mb-3">
             <div className={cn(
-              "w-5 h-5 rounded-full border-2 flex items-center justify-center",
-              method === 'card' ? "border-[#FF6900] bg-[#FF6900]" : "border-gray-border"
+              "w-4 h-4 rounded-full border flex items-center justify-center",
+              method === 'card' ? "border-gray-900" : "border-gray-300"
             )}>
-              {method === 'card' && <div className="w-2 h-2 rounded-full bg-white" />}
+              {method === 'card' && <div className="w-2 h-2 rounded-full bg-gray-900" />}
             </div>
             <div className="flex items-center gap-2">
-              <CreditCard size={20} className="text-dark" />
-              <span className="text-lg font-bold text-dark">Carte bancaire</span>
+              <CreditCard size={18} className="text-gray-900" />
+              <span className="text-sm font-semibold text-gray-900">Carte bancaire</span>
             </div>
           </div>
           
-          <div className="flex flex-col gap-2 pl-9">
-            <div className="flex items-start gap-2 text-[11px] text-dark leading-tight">
-              <AlertCircle size={14} className="shrink-0 mt-0.5" />
-              <p>
-                Le paiement est requis dans les 20 prochaines minutes pour garantir votre réservation. 
-                Si le paiement n'est pas reçu, votre réservation pourrait être annulée.
-              </p>
+          {method === 'card' && (
+            <div className="pl-7 pr-2">
+              <div className="flex items-start gap-2 text-xs text-gray-600 leading-relaxed">
+                <AlertTriangle size={14} className="shrink-0 mt-0.5 text-gray-900" />
+                <p>
+                  Le paiement est requis dans les 20 prochaines minutes pour garantir votre réservation. 
+                  Si le paiement n'est pas reçu, votre réservation pourrait être annulée ou rencontrer d'autres problèmes. Veuillez effectuer le paiement dès que possible pour éviter toute interruption.
+                </p>
+              </div>
             </div>
-            <div className="flex items-center gap-3 mt-2">
-              <span className="font-italic font-black text-[#1A1F71] tracking-tighter">VISA</span>
-              <span className="font-italic font-black text-[#EB001B] tracking-tighter">Mastercard</span>
-              <span className="font-black text-dark">CMI</span>
-            </div>
-          </div>
+          )}
         </div>
 
-        {/* Cash Payment */}
+        {/* Cash Payment (Hidden or minimal to match Figma if not shown, but I will keep it styled same way) */}
         <div 
           onClick={() => handleSelect('cash')}
           className={cn(
-            "p-6 rounded-[24px] border-2 cursor-pointer transition-all",
-            method === 'cash' ? "border-[#FF6900] bg-[#FF6900]/5" : "border-gray-border bg-white hover:border-gray-body/30"
+            "p-5 rounded-xl border cursor-pointer transition-all",
+            method === 'cash' ? "border-gray-900 bg-white" : "border-gray-200 bg-white hover:border-gray-300"
           )}
         >
-          <div className="flex items-center gap-4 mb-4">
+          <div className="flex items-center gap-3">
             <div className={cn(
-              "w-5 h-5 rounded-full border-2 flex items-center justify-center",
-              method === 'cash' ? "border-[#FF6900] bg-[#FF6900]" : "border-gray-border"
+              "w-4 h-4 rounded-full border flex items-center justify-center",
+              method === 'cash' ? "border-gray-900" : "border-gray-300"
             )}>
-              {method === 'cash' && <div className="w-2 h-2 rounded-full bg-white" />}
+              {method === 'cash' && <div className="w-2 h-2 rounded-full bg-gray-900" />}
             </div>
             <div className="flex items-center gap-2">
-              <Wallet size={20} className="text-dark" />
-              <span className="text-lg font-bold text-dark">Espèce</span>
+              <Wallet size={18} className="text-gray-900" />
+              <span className="text-sm font-semibold text-gray-900">Espèce</span>
             </div>
           </div>
           
-          <div className="pl-9">
-            <p className="text-[11px] text-gray-body leading-tight">
-              Vous allez recevoir un code Fatourati que devez payer dans une agence 
-              <span className="font-bold text-dark"> CASHPLUS, FAWATIR, DAMANE CASH</span> ou 
-              <span className="font-bold text-dark"> MT CASH</span> aujourd'hui (Expire dans 30 minutes).
-            </p>
-          </div>
+          {method === 'cash' && (
+            <div className="pl-7 pr-2 mt-3">
+              <div className="flex items-start gap-2 text-xs text-gray-600 leading-relaxed">
+                <AlertTriangle size={14} className="shrink-0 mt-0.5 text-gray-900" />
+                <p>
+                  Vous allez recevoir un code Fatourati que devez payer dans une agence 
+                  <span className="font-semibold text-gray-900"> CASHPLUS, FAWATIR, DAMANE CASH</span> ou 
+                  <span className="font-semibold text-gray-900"> MT CASH</span> aujourd'hui (Expire dans 30 minutes).
+                </p>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

@@ -19,7 +19,10 @@ export async function markBookingPaid(
 }
 
 export async function cancelBooking(code: string): Promise<void> {
-  await apiRequest<void>(`/bookings/${code}`, { method: 'DELETE' });
+  await apiRequest<void>(`/bookings/${code}`, { 
+    method: 'DELETE',
+    body: {}, // Markoub API might require an empty body for DELETE
+  });
 }
 
 export async function fetchBooking(code: string): Promise<Booking> {

@@ -39,38 +39,38 @@ const Wheel = () => (
 const colors = [
   {
     type: "selected",
-    color1: "#FF6900",
-    color2: "#FD9023",
-    color3: "#FF6900",
+    color1: "#F97316", // orange-500
+    color2: "#EA580C", // orange-600
+    color3: "#F97316",
     border: "#FFFFFF",
   },
   {
     type: "available",
-    color1: "#8DC63F",
-    color2: "#39B54A",
-    color3: "#0B9444",
+    color1: "#22C55E", // green-500
+    color2: "#16A34A", // green-600
+    color3: "#22C55E",
     border: "#FFFFFF",
   },
   {
     type: "reserved",
-    color1: "#59C3E0",
-    color2: "#3D9EB9",
-    color3: "#137F9C",
+    color1: "#CBD5E1", // slate-300
+    color2: "#94A3B8", // slate-400
+    color3: "#CBD5E1",
     border: "#FFFFFF",
   },
   {
     type: "empty",
-    color1: "#DFDFDF",
-    color2: "#DFDFDF",
-    color3: "#DFDFDF",
-    border: "#B1B1B1",
+    color1: "#CBD5E1",
+    color2: "#94A3B8",
+    color3: "#CBD5E1",
+    border: "#FFFFFF",
   },
   {
     type: "closed",
-    color1: "#DFDFDF",
-    color2: "#DFDFDF",
-    color3: "#DFDFDF",
-    border: "#B1B1B1",
+    color1: "#CBD5E1",
+    color2: "#94A3B8",
+    color3: "#CBD5E1",
+    border: "#FFFFFF",
   },
 ];
 
@@ -92,12 +92,11 @@ export const SeatModel = ({
   if (type === "space") return <div className={cn("size-[50px]", className)} />;
 
   const selectedColor = colors.find((c) => c.type === type) ?? colors[0];
-  const isClosed = type === "closed" || type === "empty";
-  const isReserved = type === "reserved";
+  const isOccupied = type === "closed" || type === "empty" || type === "reserved";
 
   return (
     <svg
-      className={cn(className, isClosed && "opacity-65")}
+      className={cn(className, isOccupied && "opacity-80")}
       width={scale ? size * scale : size}
       height={scale ? size * scale : size}
       viewBox="0 0 38 38"
@@ -147,45 +146,28 @@ export const SeatModel = ({
         strokeWidth="0.7"
       />
 
-      {isClosed && (
+      {isOccupied && (
         <path
-          d="M23.5 13L15 21.5M15 13L23.5 21.5"
-          stroke="#B0B0B0"
+          d="M25 13L13 25M13 13L25 25"
+          stroke="#94A3B8"
+          strokeWidth="3"
           strokeLinecap="round"
           strokeLinejoin="round"
         />
       )}
 
-      {number && !isClosed && (
+      {number && !isOccupied && (
         <text
           x="50%"
           y="50%"
           textAnchor="middle"
           dominantBaseline="middle"
-          fontSize={11}
-          fontWeight={600}
+          fontSize={14}
+          fontWeight={700}
           fill="white"
         >
-          {number}
+          {number.toString().padStart(2, '0')}
         </text>
-      )}
-
-      {isReserved && (
-        <>
-          <rect x="0" y="16" width="100%" height="11" fill="#FFD700"></rect>
-          <text
-            x="3"
-            y="21"
-            width="100%"
-            height="13"
-            alignmentBaseline="central"
-            fontSize="6"
-            fontWeight="bold"
-            fill="#000000"
-          >
-            RESERVED
-          </text>
-        </>
       )}
     </svg>
   );
@@ -297,37 +279,37 @@ export default function SeatMapModal({
   const isComplete = selectedIndices.length === nbrOfPassengers;
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-dark/40 backdrop-blur-sm" onClick={onClose} />
+    <div className="fixed inset-0 z-[100] flex justify-end p-4 sm:p-6">
+      <div className="absolute inset-0 bg-gray-900/40" onClick={onClose} />
 
-      <div className="relative bg-white w-full max-w-[420px] rounded-[24px] shadow-2xl overflow-hidden flex flex-col max-h-[95vh]">
+      <div className="relative bg-white w-full max-w-[420px] rounded-[24px] shadow-2xl overflow-hidden flex flex-col h-full animate-in slide-in-from-right-8 duration-300">
 
         {/* Header */}
-        <div className="px-6 pt-6 pb-2 flex items-start justify-between">
+        <div className="px-6 pt-6 pb-4 flex items-start justify-between">
           <div>
-            <h2 className="text-xl font-bold text-dark tracking-tight">Réservation de siège</h2>
-            <p className="text-sm font-medium text-gray-500 mt-0.5">
+            <h2 className="text-lg font-bold text-gray-900 tracking-tight">Réservation de siège</h2>
+            <p className="text-sm text-gray-500 mt-0.5">
               {companyName} - {busName}
             </p>
           </div>
-          <button onClick={onClose} className="w-8 h-8 rounded-full flex items-center justify-center text-gray-body hover:bg-gray-100 transition-colors">
+          <button onClick={onClose} className="w-8 h-8 flex items-center justify-center text-gray-900 hover:bg-gray-100 rounded-md transition-colors">
             <X size={20} />
           </button>
         </div>
 
         {/* Legend */}
-        <div className="px-6 py-4 flex items-center justify-between border-b border-gray-100">
+        <div className="px-6 pb-4 flex items-center justify-between border-b border-gray-100">
           <div className="flex items-center gap-2">
-            <div className="w-5 h-5 rounded-md bg-[#DFDFDF] border border-[#B1B1B1]" />
-            <span className="text-[11px] font-bold text-gray-500">Siège occupée</span>
+            <div className="w-4 h-4 rounded-sm bg-slate-300 border border-slate-300" />
+            <span className="text-xs font-medium text-gray-600">Siège occupée</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-5 h-5 rounded-md bg-[#8DC63F]" />
-            <span className="text-[11px] font-bold text-gray-500">Siège disponible</span>
+            <div className="w-4 h-4 rounded-sm bg-green-500" />
+            <span className="text-xs font-medium text-gray-600">Siège disponible</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-5 h-5 rounded-md bg-[#FF6900]" />
-            <span className="text-[11px] font-bold text-gray-500">Votre siège sélectionné</span>
+            <div className="w-4 h-4 rounded-sm bg-orange-500" />
+            <span className="text-xs font-medium text-gray-600">Votre siège sélectionné</span>
           </div>
         </div>
 
@@ -358,11 +340,11 @@ export default function SeatMapModal({
                 <div className="flex flex-col gap-2">
                   {[1, 2, 3, 4, 5, 6, 7, 8].map(i => (
                     <div key={i} className="flex gap-2">
-                      <Skeleton className="h-[50px] w-[50px] rounded-lg" />
-                      <Skeleton className="h-[50px] w-[50px] rounded-lg" />
-                      <div className="w-[50px]" />
-                      <Skeleton className="h-[50px] w-[50px] rounded-lg" />
-                      <Skeleton className="h-[50px] w-[50px] rounded-lg" />
+                      <Skeleton className="h-[42px] w-[42px] rounded-lg" />
+                      <Skeleton className="h-[42px] w-[42px] rounded-lg" />
+                      <div className="w-[42px]" />
+                      <Skeleton className="h-[42px] w-[42px] rounded-lg" />
+                      <Skeleton className="h-[42px] w-[42px] rounded-lg" />
                     </div>
                   ))}
                 </div>
@@ -384,7 +366,7 @@ export default function SeatMapModal({
                       const type = isUserSelected ? 'selected' : seat.type;
 
                       return seat.type === "space" ? (
-                        <div key={seatIndex} className="size-[50px]" />
+                        <div key={seatIndex} className="size-[42px]" />
                       ) : (
                         <button
                           type="button"
@@ -393,7 +375,7 @@ export default function SeatMapModal({
                           onClick={() => handleSeatClick(seat)}
                           className="flex flex-col items-center justify-end disabled:cursor-not-allowed transition-transform active:scale-95"
                         >
-                          <SeatModel type={type as any} number={seat.seatNumber} />
+                          <SeatModel type={type as any} number={seat.seatNumber} size={42} />
                         </button>
                       );
                     })}
@@ -410,10 +392,10 @@ export default function SeatMapModal({
             onClick={handleConfirm}
             disabled={!isComplete}
             className={cn(
-              "w-full h-14 font-bold text-lg rounded-2xl transition-all",
+              "w-full h-12 font-medium text-base rounded-full transition-all",
               isComplete
-                ? "bg-[#FF6900] hover:bg-[#FF8000] text-white shadow-lg shadow-orange-500/20"
-                : "bg-gray-100 text-gray-300 cursor-not-allowed"
+                ? "bg-blue-600 hover:bg-blue-700 text-white"
+                : "bg-blue-300 text-white cursor-not-allowed"
             )}
           >
             Confirmer
