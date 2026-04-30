@@ -256,13 +256,14 @@ export default function SeatMapModal({
       if (prev.includes(seat.index)) {
         return prev.filter(s => s !== seat.index);
       }
-      if (prev.length < nbrOfPassengers) {
-        return [...prev, seat.index];
+      
+      // Si on a déjà atteint le nombre maximum de passagers
+      if (prev.length >= nbrOfPassengers) {
+        // On retire le plus ancien (le premier de la liste) et on ajoute le nouveau
+        return [...prev.slice(1), seat.index];
       }
-      if (nbrOfPassengers === 1) {
-        return [seat.index];
-      }
-      return prev;
+      
+      return [...prev, seat.index];
     });
   };
 
@@ -288,8 +289,8 @@ export default function SeatMapModal({
         <div className="px-6 pt-6 pb-4 flex items-start justify-between">
           <div>
             <h2 className="text-lg font-bold text-gray-900 tracking-tight">Réservation de siège</h2>
-            <p className="text-sm text-gray-500 mt-0.5">
-              {companyName} - {busName}
+            <p className="text-sm font-medium text-blue-600 mt-0.5">
+              {selectedIndices.length} / {nbrOfPassengers} siège(s) sélectionné(s)
             </p>
           </div>
           <button onClick={onClose} className="w-8 h-8 flex items-center justify-center text-gray-900 hover:bg-gray-100 rounded-md transition-colors">
@@ -363,7 +364,9 @@ export default function SeatMapModal({
                   <div key={rowIndex} className="flex flex-row items-center gap-x-2">
                     {row.map((seat, seatIndex) => {
                       const isUserSelected = selectedIndices.includes(seat.index);
-                      const type = isUserSelected ? 'selected' : seat.type;
+                      // On ne force l'orange que pour ce que l'utilisateur a dans sa liste locale
+                      // Si l'API renvoie 'selected' mais qu'il n'est pas dans selectedIndices, on l'affiche comme disponible
+                      const type = isUserSelected ? 'selected' : (seat.type === 'selected' ? 'available' : seat.type);
 
                       return seat.type === "space" ? (
                         <div key={seatIndex} className="size-[42px]" />
@@ -398,7 +401,9 @@ export default function SeatMapModal({
                 : "bg-blue-300 text-white cursor-not-allowed"
             )}
           >
-            Confirmer
+            <span className="flex items-center justify-center gap-2">
+              {isComplete ? "Confirmer la sélection" : `Sélectionner encore ${nbrOfPassengers - selectedIndices.length} siège(s)`}
+            </span>
           </Button>
         </div>
       </div>
