@@ -7,14 +7,14 @@ export default function Header() {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   return (
-    <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-gray-border">
-      <div className="container-app flex items-center justify-between h-16">
+    <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-sm">
+      <div className="container-app flex items-center justify-between h-24">
         {/* Logo */}
         <Link to="/" className="flex items-center gap-2 no-underline">
           <img 
             src="/images/logo-pullman.png" 
             alt="Pullman du Sud" 
-            className="h-12 w-auto object-contain"
+            className="h-18 w-auto object-contain"
           />
         </Link>
 

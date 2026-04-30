@@ -9,16 +9,34 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as VoyageursRouteImport } from './routes/voyageurs'
+import { Route as TouristiqueRouteImport } from './routes/touristique'
 import { Route as SearchRouteImport } from './routes/search'
+import { Route as MessagerieRouteImport } from './routes/messagerie'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as JourneyJourneyIdRouteImport } from './routes/journey/$journeyId'
 import { Route as BookingBookingCodeRouteImport } from './routes/booking/$bookingCode'
 import { Route as BookingCheckoutJourneyIdRouteImport } from './routes/booking/checkout.$journeyId'
 
+const VoyageursRoute = VoyageursRouteImport.update({
+  id: '/voyageurs',
+  path: '/voyageurs',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TouristiqueRoute = TouristiqueRouteImport.update({
+  id: '/touristique',
+  path: '/touristique',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SearchRoute = SearchRouteImport.update({
   id: '/search',
   path: '/search',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MessagerieRoute = MessagerieRouteImport.update({
+  id: '/messagerie',
+  path: '/messagerie',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AboutRoute = AboutRouteImport.update({
@@ -51,7 +69,10 @@ const BookingCheckoutJourneyIdRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/messagerie': typeof MessagerieRoute
   '/search': typeof SearchRoute
+  '/touristique': typeof TouristiqueRoute
+  '/voyageurs': typeof VoyageursRoute
   '/booking/$bookingCode': typeof BookingBookingCodeRoute
   '/journey/$journeyId': typeof JourneyJourneyIdRoute
   '/booking/checkout/$journeyId': typeof BookingCheckoutJourneyIdRoute
@@ -59,7 +80,10 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/messagerie': typeof MessagerieRoute
   '/search': typeof SearchRoute
+  '/touristique': typeof TouristiqueRoute
+  '/voyageurs': typeof VoyageursRoute
   '/booking/$bookingCode': typeof BookingBookingCodeRoute
   '/journey/$journeyId': typeof JourneyJourneyIdRoute
   '/booking/checkout/$journeyId': typeof BookingCheckoutJourneyIdRoute
@@ -68,7 +92,10 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/messagerie': typeof MessagerieRoute
   '/search': typeof SearchRoute
+  '/touristique': typeof TouristiqueRoute
+  '/voyageurs': typeof VoyageursRoute
   '/booking/$bookingCode': typeof BookingBookingCodeRoute
   '/journey/$journeyId': typeof JourneyJourneyIdRoute
   '/booking/checkout/$journeyId': typeof BookingCheckoutJourneyIdRoute
@@ -78,7 +105,10 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/about'
+    | '/messagerie'
     | '/search'
+    | '/touristique'
+    | '/voyageurs'
     | '/booking/$bookingCode'
     | '/journey/$journeyId'
     | '/booking/checkout/$journeyId'
@@ -86,7 +116,10 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/about'
+    | '/messagerie'
     | '/search'
+    | '/touristique'
+    | '/voyageurs'
     | '/booking/$bookingCode'
     | '/journey/$journeyId'
     | '/booking/checkout/$journeyId'
@@ -94,7 +127,10 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/about'
+    | '/messagerie'
     | '/search'
+    | '/touristique'
+    | '/voyageurs'
     | '/booking/$bookingCode'
     | '/journey/$journeyId'
     | '/booking/checkout/$journeyId'
@@ -103,7 +139,10 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
+  MessagerieRoute: typeof MessagerieRoute
   SearchRoute: typeof SearchRoute
+  TouristiqueRoute: typeof TouristiqueRoute
+  VoyageursRoute: typeof VoyageursRoute
   BookingBookingCodeRoute: typeof BookingBookingCodeRoute
   JourneyJourneyIdRoute: typeof JourneyJourneyIdRoute
   BookingCheckoutJourneyIdRoute: typeof BookingCheckoutJourneyIdRoute
@@ -111,11 +150,32 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/voyageurs': {
+      id: '/voyageurs'
+      path: '/voyageurs'
+      fullPath: '/voyageurs'
+      preLoaderRoute: typeof VoyageursRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/touristique': {
+      id: '/touristique'
+      path: '/touristique'
+      fullPath: '/touristique'
+      preLoaderRoute: typeof TouristiqueRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/search': {
       id: '/search'
       path: '/search'
       fullPath: '/search'
       preLoaderRoute: typeof SearchRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/messagerie': {
+      id: '/messagerie'
+      path: '/messagerie'
+      fullPath: '/messagerie'
+      preLoaderRoute: typeof MessagerieRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/about': {
@@ -159,7 +219,10 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
+  MessagerieRoute: MessagerieRoute,
   SearchRoute: SearchRoute,
+  TouristiqueRoute: TouristiqueRoute,
+  VoyageursRoute: VoyageursRoute,
   BookingBookingCodeRoute: BookingBookingCodeRoute,
   JourneyJourneyIdRoute: JourneyJourneyIdRoute,
   BookingCheckoutJourneyIdRoute: BookingCheckoutJourneyIdRoute,
