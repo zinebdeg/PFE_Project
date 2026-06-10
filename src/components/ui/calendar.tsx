@@ -41,9 +41,9 @@ export function Calendar({ selectedDate, onSelect }: CalendarProps) {
   };
 
   return (
-    <div className="w-[320px] bg-white border border-gray-200 rounded-3xl shadow-xl p-6 font-sans">
+    <div className="w-[300px] bg-white border border-gray-200 rounded-3xl shadow-2xl p-4 font-sans">
       {/* Header */}
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex justify-between items-center mb-4">
         <button 
           onClick={prevMonth} 
           className="p-1.5 rounded-lg border border-gray-200 hover:bg-gray-100 transition-colors"
@@ -71,7 +71,7 @@ export function Calendar({ selectedDate, onSelect }: CalendarProps) {
       </div>
 
       {/* Calendar Grid */}
-      <div className="grid grid-cols-7 gap-y-2 gap-x-1 mb-6">
+      <div className="grid grid-cols-7 gap-y-1 gap-x-1 mb-4">
         {daysInMonth.map((day, i) => {
           const isSelected = selectedDate ? isSameDay(day, selectedDate) : false;
           const isCurrentMonth = isSameMonth(day, currentMonth);

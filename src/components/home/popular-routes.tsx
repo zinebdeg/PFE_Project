@@ -15,14 +15,13 @@ export default function PopularRoutes() {
     )?.id || 0;
   };
 
-  const today = new Date().toISOString().split('T')[0];
+  const today = new Date().toLocaleDateString('en-CA'); // en-CA format is YYYY-MM-DD
 
   return (
     <section className="py-24 bg-white">
       <div className="container-app">
         <div className="text-center mb-16">
-          <h2 className="text-4xl font-extrabold text-[#111827] mb-4">Routes Populaires</h2>
-          <p className="text-gray-500 font-medium">Découvrez nos trajets les plus demandés à travers le Royaume</p>
+          <h2 className="text-4xl font-extrabold text-[#111827]">Routes Populaires</h2>
         </div>
 
         {isLoading ? (

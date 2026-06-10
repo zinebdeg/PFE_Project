@@ -8,21 +8,19 @@ export const getSeatMap = createServerFn({ method: "GET" })
       searchId: string;
     };
 
-    console.log("[RPC] Fetching seat map for:", data);
+    console.log("[RPC] getSeatMap CALLED with:", data);
     try {
-      // Appel réseau effectué depuis le serveur Node.js vers l'API Markoub.
-      // Le navigateur client ne voit jamais cet appel ni le token secret.
       const result = await fetchSeatMap(data);
-      console.log('donnee recu du serveur', result);
-      console.log("[RPC] Seat map result: array=", Array.isArray(result), "length=", Array.isArray(result) ? result.length : 'N/A');
+      console.log('[RPC] API RAW RESULT:', JSON.stringify(result).slice(0, 200));
 
-      // Normalize: the API should return SeatMapResponse[] per the docs
-      // If the API returns a single object instead of an array, wrap it
-      if (result && !Array.isArray(result)) {
-        return [result];
+      // Handle potential { data: ... } wrapper from some API versions
+      const actualData = (result as any)?.data || result;
+
+      if (actualData && !Array.isArray(actualData)) {
+        return [actualData];
       }
 
-      return result;
+      return actualData;
     } catch (error: any) {
       console.error("[RPC] Seat map fetch error:", error.message || error);
       // STRATÉGIE DE GESTION D'ERREUR (RÉSILIENCE) :

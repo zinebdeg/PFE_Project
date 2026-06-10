@@ -9,11 +9,11 @@ export function useJourneySearch(params: {
   date: string;
   nbrOfPassengers: number;
   previousSearchId?: string;
-}) {
+}, options?: { enabled?: boolean }) {
   return useQuery({
     queryKey: ['journeys', params],
     queryFn: () => searchJourneys({ data: params }),
-    enabled: !!params.departureCityId && !!params.arrivalCityId && !!params.date,
+    enabled: !!params.departureCityId && !!params.arrivalCityId && !!params.date && (options?.enabled !== false),
   });
 }
 

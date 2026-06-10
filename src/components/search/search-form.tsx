@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from '@tanstack/react-router';
 import { useCities } from '../../hooks/use-cities';
 import type { City } from '../../api/types';
@@ -13,6 +13,7 @@ interface SearchFormProps {
   initialFromId?: number;
   initialToId?: number;
   initialDate?: string;
+  initialReturnDate?: string;
   initialPassengers?: number;
 }
 
@@ -20,18 +21,34 @@ export default function SearchForm({
   initialFromId = undefined, 
   initialToId = undefined, 
   initialDate, 
+  initialReturnDate,
   initialPassengers = 1 
 }: SearchFormProps = {}) {
   const navigate = useNavigate();
   // APPEL À L'API :
-  // useCities() est notre hook personnalisé (qui utilise React Query) pour interroger
-  // la fonction RPC getCities(). Si les données sont en train de charger, `cities` sera un tableau vide.
-  const { data: cities = [] } = useCities();
+  const { data: rawCities = [] } = useCities();
+  
+  // Nettoyage des noms (ex: enlever "(Rabat)" de Temara) et déduplication
+  const cities = useMemo(() => {
+    const map = new Map<string, City>();
+    rawCities.forEach((c: City) => {
+      let cleanName = c.name;
+      // Nettoyer spécifiquement Temara (Rabat)
+      if (cleanName.toLowerCase().includes('temara')) {
+        cleanName = cleanName.replace(/\s*\(Rabat\)/i, '');
+      }
+      // Utiliser le nom en minuscules comme clé pour éviter les doublons (ex: 2 fois Temara)
+      if (!map.has(cleanName.toLowerCase())) {
+        map.set(cleanName.toLowerCase(), { ...c, name: cleanName });
+      }
+    });
+    return Array.from(map.values());
+  }, [rawCities]);
   
   const [fromId, setFromId] = useState<number | undefined>(initialFromId);
   const [toId, setToId] = useState<number | undefined>(initialToId);
   const [date, setDate] = useState<string>(initialDate || format(new Date(), 'yyyy-MM-dd'));
-  const [returnDate, setReturnDate] = useState<string>('');
+  const [returnDate, setReturnDate] = useState<string>(initialReturnDate || '');
   const [passengers, setPassengers] = useState(initialPassengers);
   
   const [showFromMenu, setShowFromMenu] = useState(false);
@@ -54,6 +71,7 @@ export default function SearchForm({
         departureCityId: fromId,
         arrivalCityId: toId,
         date,
+        returnDate: returnDate || undefined,
         nbrOfPassengers: passengers,
       },
     });
@@ -196,7 +214,7 @@ export default function SearchForm({
         </div>
 
         {/* Dates row */}
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-2 gap-4 relative">
           {/* Departure Date */}
           <div className="relative">
             <div 
@@ -208,18 +226,6 @@ export default function SearchForm({
                 {date ? (isToday(new Date(date)) ? "Aujourd'hui" : format(new Date(date), 'dd MMMM yyyy', { locale: fr })) : "Aujourd'hui"}
               </span>
             </div>
-
-            {showDatePicker && (
-              <div className="absolute top-full left-0 mt-2 z-50 animate-in fade-in zoom-in-95">
-                <Calendar 
-                  selectedDate={date ? new Date(date) : undefined}
-                  onSelect={(d) => {
-                    setDate(format(d, 'yyyy-MM-dd'));
-                    setShowDatePicker(false);
-                  }}
-                />
-              </div>
-            )}
           </div>
 
           {/* Return Date */}
@@ -233,19 +239,32 @@ export default function SearchForm({
                 {returnDate ? format(new Date(returnDate), 'dd MMMM yyyy', { locale: fr }) : 'Date de retour'}
               </span>
             </div>
-
-            {showReturnPicker && (
-              <div className="absolute top-full left-0 mt-2 z-50 animate-in fade-in zoom-in-95">
-                <Calendar 
-                  selectedDate={returnDate ? new Date(returnDate) : undefined}
-                  onSelect={(d) => {
-                    setReturnDate(format(d, 'yyyy-MM-dd'));
-                    setShowReturnPicker(false);
-                  }}
-                />
-              </div>
-            )}
           </div>
+
+          {/* Popovers relative to the whole dates row */}
+          {showDatePicker && (
+            <div className="absolute top-full left-[-20px] mt-2 z-[100] animate-in fade-in zoom-in-95 shadow-2xl overflow-visible">
+              <Calendar 
+                selectedDate={date ? new Date(date) : undefined}
+                onSelect={(d) => {
+                  setDate(format(d, 'yyyy-MM-dd'));
+                  setShowDatePicker(false);
+                }}
+              />
+            </div>
+          )}
+
+          {showReturnPicker && (
+            <div className="absolute top-full right-0 mt-2 z-[100] animate-in fade-in zoom-in-95 shadow-2xl overflow-visible">
+              <Calendar 
+                selectedDate={returnDate ? new Date(returnDate) : undefined}
+                onSelect={(d) => {
+                  setReturnDate(format(d, 'yyyy-MM-dd'));
+                  setShowReturnPicker(false);
+                }}
+              />
+            </div>
+          )}
         </div>
 
         {/* Passengers */}

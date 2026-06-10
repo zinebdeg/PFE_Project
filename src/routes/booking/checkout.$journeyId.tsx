@@ -7,6 +7,7 @@ import { Phone, Loader2, AlertCircle } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { Button } from '../../components/ui/button';
 import { Skeleton } from '../../components/ui/skeleton';
+import type { Journey } from '../../api/types';
 
 // Subcomponents
 import SeatSelectionCard from '../../components/booking/seat-selection-card';
@@ -18,11 +19,15 @@ import SeatMapModal from '../../components/booking/seat-map-modal';
 export const Route = createFileRoute('/booking/checkout/$journeyId')({
   validateSearch: (search: Record<string, unknown>) => {
     return {
-      searchId: (search.searchId as string) || '',
+      allerSearchId: (search.allerSearchId as string) || '',
+      retourSearchId: (search.retourSearchId as string) || '',
       selectedSeat: (search.seat as string) || '',
+      selectedReturnSeat: (search.returnSeat as string) || '',
       departureCityId: Number(search.departureCityId) || 0,
       arrivalCityId: Number(search.arrivalCityId) || 0,
       date: (search.date as string) || '',
+      returnDate: (search.returnDate as string) || '',
+      retourJourneyId: (search.retourJourneyId as string) || undefined,
       nbrOfPassengers: Number(search.nbrOfPassengers) || 1,
     };
   },
@@ -32,7 +37,7 @@ export const Route = createFileRoute('/booking/checkout/$journeyId')({
 function BookingPage() {
   const { journeyId } = Route.useParams();
   const searchParams = Route.useSearch();
-  const { searchId, selectedSeat } = searchParams;
+  const { allerSearchId, retourSearchId, selectedSeat, selectedReturnSeat } = searchParams;
   const navigate = useNavigate();
 
   const createBookingMutation = useCreateBooking();
@@ -54,34 +59,52 @@ function BookingPage() {
     setTimeout(() => setToastError(null), 4000);
   };
 
-  // REQUÊTE EN ARRIÈRE-PLAN (BACKGROUND REFETCH) :
-  // On utilise useJourneySearch ici pour s'assurer que la session de recherche (searchId) 
-  // ne va pas expirer si l'utilisateur met du temps à remplir le formulaire.
-  // L'API Markoub renouvelle le searchId silencieusement.
-  const { data: searchResult, isLoading } = useJourneySearch({
+  // Fetch Aller Results
+  const { data: searchResult, isLoading: isLoadingAller } = useJourneySearch({
     departureCityId: searchParams.departureCityId,
     arrivalCityId: searchParams.arrivalCityId,
     date: searchParams.date,
     nbrOfPassengers: searchParams.nbrOfPassengers,
-    previousSearchId: searchId,
+    previousSearchId: allerSearchId,
   });
 
-  const journey = useMemo(() =>
+  // Fetch Retour Results
+  const { data: retourSearchResult, isLoading: isLoadingRetour } = useJourneySearch({
+    departureCityId: searchParams.arrivalCityId,
+    arrivalCityId: searchParams.departureCityId,
+    date: searchParams.returnDate,
+    nbrOfPassengers: searchParams.nbrOfPassengers,
+    previousSearchId: retourSearchId,
+  }, { enabled: !!searchParams.retourJourneyId });
+
+  const isLoading = isLoadingAller || (!!searchParams.retourJourneyId && isLoadingRetour);
+
+  const allerJourney = useMemo(() =>
     searchResult?.journeys.find(j => j.id.toString() === journeyId),
     [searchResult, journeyId]
   );
 
-  const hasSeatMap = journey?.showSeatMap === true;
-  console.log("[DEBUG] showSeatMap:", journey?.showSeatMap);
+  const retourJourney = useMemo(() =>
+    retourSearchResult?.journeys.find(j => j.id.toString() === searchParams.retourJourneyId),
+    [retourSearchResult, searchParams.retourJourneyId]
+  );
 
-  const handleSeatConfirm = (seats: string[]) => {
+  const hasSeatMap = !!(allerJourney?.showSeatMap || retourJourney?.showSeatMap);
+  console.log("[DEBUG] showSeatMap:", allerJourney?.showSeatMap);
+
+  const handleSeatConfirm = (seats: string[], target: 'aller' | 'retour' = 'aller') => {
     navigate({
       to: '/booking/checkout/$journeyId',
       params: { journeyId },
-      search: { ...searchParams, seat: seats.join(',') },
+      search: { 
+        ...searchParams, 
+        [target === 'aller' ? 'seat' : 'returnSeat']: seats.join(',') 
+      },
     });
     setIsSeatModalOpen(false);
   };
+
+  const [activeSeatSelection, setActiveSeatSelection] = useState<'aller' | 'retour'>('aller');
 
   const handleProcessBooking = async () => {
     if (!passengerData.name || !passengerData.email || !passengerData.phone) {
@@ -89,106 +112,106 @@ function BookingPage() {
       return;
     }
 
-    // Validation optionnelle des sièges :
-    // Si l'utilisateur n'a pas sélectionné de sièges, l'API Markoub assignera des sièges par défaut.
-    // S'il en a sélectionné, on vérifie qu'il a bien sélectionné le bon nombre.
-    if (hasSeatMap && selectedSeat) {
-      const selectedSeatsCount = selectedSeat.split(',').filter(Boolean).length;
-      if (selectedSeatsCount !== searchParams.nbrOfPassengers) {
-        showErrorToast(`Veuillez sélectionner exactement ${searchParams.nbrOfPassengers} siège(s). (Actuellement: ${selectedSeatsCount})`);
-        return;
+    const validateSeats = (journey: Journey | undefined, selected: string) => {
+      if (journey?.showSeatMap && selected) {
+        const count = selected.split(',').filter(Boolean).length;
+        if (count !== searchParams.nbrOfPassengers) {
+          return `Veuillez sélectionner exactement ${searchParams.nbrOfPassengers} siège(s) pour le trajet ${journey.from.cityName} → ${journey.to.cityName}.`;
+        }
       }
+      return null;
+    };
+
+    const seatError = validateSeats(allerJourney, selectedSeat) || (retourJourney ? validateSeats(retourJourney, selectedReturnSeat) : null);
+    if (seatError) {
+      showErrorToast(seatError);
+      return;
     }
 
     setIsProcessing(true);
     setProcessingStep('creating');
 
     try {
-      let autoAssignedSeats: number[] = [];
-
-      // Si le trajet nécessite des sièges mais que l'utilisateur n'en a pas sélectionné
-      if (hasSeatMap && !selectedSeat) {
-        const freshSearchId = searchResult?.searchId || searchId;
-        const seatMapResponse = await getSeatMap({ data: { journeyId: Number(journeyId), searchId: freshSearchId } });
+      const createAndPay = async (journey: Journey, sId: string, selectedS: string) => {
+        let finalSeats: number[] = [];
         
-        // Logique du scanner récursif pour extraire le plan
-        const findSeatSource = (obj: any): any => {
-          if (!obj || typeof obj !== 'object') return null;
-          if (Array.isArray(obj.seatMap)) return obj;
-          if (Array.isArray(obj)) {
-            for (const item of obj) {
-              const found = findSeatSource(item);
-              if (found) return found;
+        if (journey.showSeatMap) {
+          if (selectedS) {
+            finalSeats = selectedS.split(',').map(Number);
+          } else {
+            // Auto-assign seats if map exists but none selected
+            const seatMapResponse = await getSeatMap({ data: { journeyId: journey.id, searchId: sId } });
+            
+            const findSeatSource = (obj: any): any => {
+              if (!obj || typeof obj !== 'object') return null;
+              if (Array.isArray(obj.seatMap)) return obj;
+              if (Array.isArray(obj)) {
+                for (const item of obj) {
+                  const found = findSeatSource(item);
+                  if (found) return found;
+                }
+              }
+              if (obj.data) return findSeatSource(obj.data);
+              if (obj.result) return findSeatSource(obj.result);
+              return null;
+            };
+
+            const source = findSeatSource(seatMapResponse);
+            if (source?.seatMap) {
+              const available: number[] = [];
+              source.seatMap.forEach((row: any[]) => row.forEach((s: any) => {
+                if (s?.type === 'available' && s.seatNumber) available.push(s.seatNumber);
+              }));
+              
+              if (available.length >= searchParams.nbrOfPassengers) {
+                finalSeats = available.slice(0, searchParams.nbrOfPassengers);
+              } else {
+                throw new Error(`Désolé, il n'y a plus assez de sièges disponibles pour le trajet vers ${journey.to.cityName}.`);
+              }
             }
           }
-          if (obj.data) return findSeatSource(obj.data);
-          if (obj.result) return findSeatSource(obj.result);
-          return null;
-        };
-
-        const source = findSeatSource(seatMapResponse);
-        if (source && source.seatMap) {
-          const availableSeats: number[] = [];
-          source.seatMap.forEach((row: any[]) => {
-            row.forEach((seat: any) => {
-              if (seat && seat.type === 'available' && seat.seatNumber) {
-                availableSeats.push(seat.seatNumber);
-              }
-            });
-          });
-
-          if (availableSeats.length >= searchParams.nbrOfPassengers) {
-            autoAssignedSeats = availableSeats.slice(0, searchParams.nbrOfPassengers);
-          } else {
-            showErrorToast("Désolé, il n'y a pas assez de sièges disponibles pour votre groupe.");
-            setIsProcessing(false);
-            setProcessingStep(null);
-            return;
-          }
-        } else {
-           showErrorToast("Impossible de récupérer le plan des sièges pour l'assignation automatique.");
-           setIsProcessing(false);
-           setProcessingStep(null);
-           return;
         }
+
+        const booking = await createBookingMutation.mutateAsync({
+          journeyId: journey.id.toString(),
+          searchId: sId,
+          name: passengerData.name,
+          email: passengerData.email,
+          phone: passengerData.phone,
+          ...(finalSeats.length > 0 ? { seats: finalSeats } : {}),
+        });
+
+        if (booking?.code) {
+          setProcessingStep('paying');
+          await markPaidMutation.mutateAsync({
+            code: booking.code,
+            paidPrice: booking.totalPrice.toString(),
+            referenceNumber: 'REF-' + Math.random().toString(36).substring(7).toUpperCase(),
+            additionalInfo: `Paiement ${paymentMethod === 'card' ? 'par Carte' : 'en Espèces'} - Aller-Retour`,
+          });
+          return booking.code;
+        }
+        throw new Error("Une erreur est survenue lors de la création de la réservation.");
+      };
+
+      // ÉTAPE 1 : ALLER
+      const allerCode = await createAndPay(allerJourney, searchResult?.searchId || allerSearchId, selectedSeat);
+      
+      // ÉTAPE 2 : RETOUR (Optionnel)
+      let retourCode = null;
+      if (retourJourney) {
+        retourCode = await createAndPay(retourJourney, retourSearchResult?.searchId || retourSearchId, selectedReturnSeat);
       }
 
-      const finalSeats = selectedSeat 
-        ? selectedSeat.split(',').map(Number) 
-        : autoAssignedSeats;
-
-      // ÉTAPE 1 : CRÉATION DE LA RÉSERVATION (TRANSACTIONNEL)
-      // Appel RPC sécurisé (qui contacte l'API Markoub via le serveur)
-      // On utilise 'searchResult?.searchId' pour garantir l'utilisation d'une session fraîche.
-      const booking = await createBookingMutation.mutateAsync({
-        journeyId: journeyId,
-        searchId: searchResult?.searchId || searchId,
-        name: passengerData.name,
-        email: passengerData.email,
-        phone: passengerData.phone,
-        ...(finalSeats.length > 0 ? { seats: finalSeats } : {}),
+      // Redirection vers la page de confirmation
+      navigate({
+        to: '/booking/$bookingCode',
+        params: { bookingCode: allerCode },
+        search: retourCode ? { secondCode: retourCode } : {},
       });
 
-      if (booking && booking.code) {
-        setProcessingStep('paying');
-
-        // ÉTAPE 2 : PAIEMENT (EXÉCUTÉ SÉQUENTIELLEMENT UNIQUEMENT SI L'ÉTAPE 1 A RÉUSSI)
-        // Utilise le token de paiement unique généré lors de la création de la réservation
-        await markPaidMutation.mutateAsync({
-          code: booking.code,
-          paidPrice: booking.totalPrice.toString(),
-          referenceNumber: 'REF-' + Math.random().toString(36).substring(7).toUpperCase(),
-          additionalInfo: `Paiement ${paymentMethod === 'card' ? 'par Carte' : 'en Espèces'} - Token: ${booking.paymentToken}`,
-        });
-
-        // Step 3: Redirect to Confirmation
-        navigate({
-          to: '/booking/$bookingCode',
-          params: { bookingCode: booking.code },
-        });
-      }
-    } catch (e) {
-      showErrorToast('Une erreur est survenue lors de la réservation. Veuillez réessayer.');
+    } catch (e: any) {
+      showErrorToast(e.message || 'Une erreur est survenue lors de la réservation. Veuillez réessayer.');
       console.error(e);
     } finally {
       setIsProcessing(false);
@@ -196,7 +219,7 @@ function BookingPage() {
     }
   };
 
-  if (isLoading && !journey) {
+  if (isLoading && !allerJourney) {
     return (
       <div className="container-app py-20">
         <Skeleton className="w-full h-[600px] rounded-[32px]" />
@@ -204,7 +227,7 @@ function BookingPage() {
     );
   }
 
-  if (!journey) {
+  if (!allerJourney) {
     return (
       <div className="container-app py-40 text-center">
         <div className="max-w-md mx-auto bg-white p-10 rounded-[32px] border border-gray-border shadow-sm">
@@ -217,6 +240,9 @@ function BookingPage() {
       </div>
     );
   }
+
+  const currentJourneyForModal = activeSeatSelection === 'aller' ? allerJourney : retourJourney;
+  const currentSeatSelection = activeSeatSelection === 'aller' ? selectedSeat : selectedReturnSeat;
 
   return (
     <main className="min-h-screen pt-10 pb-20 bg-gray-light/10">
@@ -250,30 +276,37 @@ function BookingPage() {
 
           {/* MAIN COLUMN (LEFT): Seat Card, Passenger Form, Payment Section */}
           <div className="lg:col-span-8 flex flex-col gap-6">
-            {hasSeatMap ? (
-              <SeatSelectionCard
-                selectedSeat={selectedSeat}
-                onClick={() => setIsSeatModalOpen(true)}
-                fromCity={journey.from.cityName}
-                toCity={journey.to.cityName}
-              />
-            ) : (
-              <div className="p-6 rounded-[24px] border border-blue/20 bg-blue/5 flex items-center justify-between mb-6 shadow-sm">
-                <div className="flex flex-col gap-1">
-                  <h3 className="text-sm font-black text-dark tracking-tight">Sélection de siège</h3>
-                  <p className="text-xs font-bold text-gray-body">Le choix de siège n'est pas disponible pour ce trajet.</p>
-                </div>
-                <Button
-                  variant="outline"
-                  className="rounded-xl border-[#FF6900] text-[#FF6900] font-bold h-11 px-6 hover:bg-[#FF6900] hover:text-white transition-all"
-                  onClick={() => {
-                    document.getElementById('passenger-form')?.scrollIntoView({ behavior: 'smooth' });
-                  }}
-                >
-                  Poursuivre la réservation
-                </Button>
+            {/* Choisir mon siège section */}
+            <div className="bg-white p-6 rounded-[32px] border border-gray-border shadow-sm">
+              <div className="flex items-center gap-4 mb-6">
+                <h2 className="text-xl font-black text-dark tracking-tight">Choisir mon siège</h2>
               </div>
-            )}
+
+              <div className={cn(
+                "grid gap-4",
+                retourJourney ? "grid-cols-1 md:grid-cols-2" : "grid-cols-1"
+              )}>
+                {/* Aller Seat selection */}
+                <SeatSelectionCard
+                  label={allerJourney.stops?.length ? "Trajet avec arrêts" : "Trajet Direct"}
+                  selectedSeat={selectedSeat}
+                  onClick={() => { setActiveSeatSelection('aller'); setIsSeatModalOpen(true); }}
+                  fromCity={allerJourney.from.cityName}
+                  toCity={allerJourney.to.cityName}
+                />
+
+                {/* Retour Seat selection */}
+                {retourJourney && (
+                  <SeatSelectionCard
+                    label="Retour"
+                    selectedSeat={selectedReturnSeat}
+                    onClick={() => { setActiveSeatSelection('retour'); setIsSeatModalOpen(true); }}
+                    fromCity={retourJourney.from.cityName}
+                    toCity={retourJourney.to.cityName}
+                  />
+                )}
+              </div>
+            </div>
 
             <PassengerFormSection
               data={passengerData}
@@ -288,8 +321,9 @@ function BookingPage() {
           {/* SIDEBAR (RIGHT SIDE): Journey summary & Price box */}
           <div className="lg:col-span-4 sticky top-24 space-y-6">
             <BookingSidebar
-              journey={journey}
-              searchId={searchId}
+              journey={allerJourney}
+              retourJourney={retourJourney}
+              searchId={allerSearchId}
               passengerCount={searchParams.nbrOfPassengers}
               serviceFee={5}
               onPay={handleProcessBooking}
@@ -299,19 +333,19 @@ function BookingPage() {
         </div>
       </div>
 
-      {hasSeatMap && (
+      {currentJourneyForModal && (
         <SeatMapModal
           isOpen={isSeatModalOpen}
           onClose={() => setIsSeatModalOpen(false)}
-          onConfirm={handleSeatConfirm}
-          journeyId={Number(journeyId)}
-          searchId={searchResult?.searchId || searchId}
+          onConfirm={(seats) => handleSeatConfirm(seats, activeSeatSelection)}
+          journeyId={Number(activeSeatSelection === 'aller' ? journeyId : searchParams.retourJourneyId)}
+          searchId={activeSeatSelection === 'aller' ? (searchResult?.searchId || allerSearchId) : (retourSearchResult?.searchId || retourSearchId)}
           nbrOfPassengers={searchParams.nbrOfPassengers}
-          companyName={journey.company.name}
-          busName={journey.bus.name}
-          fromCity={journey.from.cityName}
-          toCity={journey.to.cityName}
-          initialSelectedSeats={selectedSeat ? selectedSeat.split(',') : []}
+          companyName={currentJourneyForModal.company.name}
+          busName={currentJourneyForModal.bus.name}
+          fromCity={currentJourneyForModal.from.cityName}
+          toCity={currentJourneyForModal.to.cityName}
+          initialSelectedSeats={currentSeatSelection ? currentSeatSelection.split(',') : []}
         />
       )}
 

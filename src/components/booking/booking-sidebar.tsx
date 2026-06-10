@@ -3,9 +3,12 @@ import { Button } from '../ui/button';
 import type { Journey } from '../../api/types';
 import { useState } from 'react';
 import { cn } from '../../lib/utils';
+import { format } from 'date-fns';
+import { fr } from 'date-fns/locale';
 
 interface BookingSidebarProps {
   journey: Journey;
+  retourJourney?: Journey;
   searchId: string;
   passengerCount: number;
   serviceFee: number;
@@ -13,19 +16,36 @@ interface BookingSidebarProps {
   loading?: boolean;
 }
 
-export default function BookingSidebar({ journey, searchId, passengerCount, serviceFee, onPay, loading }: BookingSidebarProps) {
+export default function BookingSidebar({ journey, retourJourney, searchId, passengerCount, serviceFee, onPay, loading }: BookingSidebarProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [showError, setShowError] = useState(false);
-  const ticketTotal = journey.price.total * passengerCount;
+  
+  const safeFormatDate = (dateStr?: string, formatStr: string = 'EEEE dd MMMM') => {
+    if (!dateStr) return 'Date inconnue';
+    try {
+      const d = new Date(dateStr);
+      if (isNaN(d.getTime())) return 'Date inconnue';
+      return format(d, formatStr, { locale: fr });
+    } catch (e) {
+      return 'Date inconnue';
+    }
+  };
+
+  const ticketTotal = (journey.price.total + (retourJourney?.price.total || 0)) * passengerCount;
   const grandTotal = ticketTotal + serviceFee;
 
-  // Consolidate all stops (from, intermediate stops, to)
-  const allStops = [
+  const allerStops = [
     { ...journey.from, type: 'DEPARTURE' },
     ...(journey.stops || []).map((s: any) => ({ ...s, type: 'STOP' })),
     { ...journey.to, type: 'ARRIVAL' }
   ];
+
+  const retourStops = retourJourney ? [
+    { ...retourJourney.from, type: 'DEPARTURE' },
+    ...(retourJourney.stops || []).map((s: any) => ({ ...s, type: 'STOP' })),
+    { ...retourJourney.to, type: 'ARRIVAL' }
+  ] : [];
 
   return (
     <div className="space-y-4">
@@ -36,19 +56,52 @@ export default function BookingSidebar({ journey, searchId, passengerCount, serv
           className="flex items-center justify-between cursor-pointer group"
           onClick={() => setIsExpanded(!isExpanded)}
         >
-          <div className="flex items-center gap-4">
-            <div className="w-16 h-16 rounded-lg overflow-hidden shrink-0 border border-gray-100">
-              <img 
-                src={journey.bus.image || "https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&q=80&w=800"} 
-                alt="Bus" 
-                className="w-full h-full object-cover"
-              />
+          <div className="flex flex-col gap-3">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-lg overflow-hidden shrink-0 border border-gray-100">
+                <img 
+                  src={journey.bus.image || "https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&q=80&w=800"} 
+                  alt="Bus" 
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <div className="flex flex-col">
+                <div className="flex items-center gap-2">
+                  <span className="bg-blue-50 text-blue-600 text-[10px] font-bold px-2 py-0.5 rounded uppercase">Aller</span>
+                  <span className="font-semibold text-[13px] text-gray-900">{journey.from.cityName} → {journey.to.cityName}</span>
+                </div>
+                <div className="flex flex-col gap-0.5 mt-1">
+                  <span className="text-[12px] font-bold text-gray-800">
+                    {safeFormatDate(journey.from.date || journey.departureDate)} - <span className="uppercase">{journey.company.name}</span>
+                  </span>
+                  <span className="text-[11px] text-gray-500">Durée: {journey.duration.replace('h00', 'h')} · {passengerCount} passager(s)</span>
+                </div>
+              </div>
             </div>
-            <div className="flex flex-col">
-              <span className="font-semibold text-sm text-gray-900 mb-0.5">Trajet {journey.stops?.length ? 'avec arrêts' : 'direct'}</span>
-              <span className="text-xs text-blue-500 mb-0.5">{journey.from.cityName} → {journey.to.cityName}</span>
-              <span className="text-xs text-gray-500 flex items-center gap-1">Durée: {journey.duration.replace('h00', 'h')} · {passengerCount} <User size={10} /></span>
-            </div>
+
+            {retourJourney && (
+              <div className="flex items-center gap-4 pt-3 border-t border-gray-50">
+                <div className="w-12 h-12 rounded-lg overflow-hidden shrink-0 border border-gray-100">
+                  <img 
+                    src={retourJourney.bus.image || "https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&q=80&w=800"} 
+                    alt="Bus" 
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <div className="flex flex-col">
+                  <div className="flex items-center gap-2">
+                    <span className="bg-orange-50 text-orange-600 text-[10px] font-bold px-2 py-0.5 rounded uppercase">Retour</span>
+                    <span className="font-semibold text-[13px] text-gray-900">{retourJourney.from.cityName} → {retourJourney.to.cityName}</span>
+                  </div>
+                  <div className="flex flex-col gap-0.5 mt-1">
+                    <span className="text-[12px] font-bold text-gray-800">
+                      {safeFormatDate(retourJourney.from.date || retourJourney.departureDate)} - <span className="uppercase">{retourJourney.company.name}</span>
+                    </span>
+                    <span className="text-[11px] text-gray-500">Durée: {retourJourney.duration.replace('h00', 'h')} · {passengerCount} passager(s)</span>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
           {isExpanded ? <ChevronUp size={18} className="text-gray-500 mr-1" /> : <ChevronDown size={18} className="text-gray-500 mr-1 group-hover:text-gray-900 transition-colors" />}
         </div>
@@ -71,15 +124,20 @@ export default function BookingSidebar({ journey, searchId, passengerCount, serv
                 ))}
               </div>
 
-              {/* Timeline Section */}
-              <div className="relative pl-3 pb-2 space-y-6">
-                <div className="absolute left-[16.5px] top-2 bottom-6 w-px bg-gray-200" />
+              {/* Timeline Section - Aller */}
+              <div className="relative pl-3 pb-2 space-y-6 mb-8">
+                <div className="flex flex-col gap-1 mb-4">
+                  <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Itinéraire Aller</div>
+                  <div className="text-[13px] font-bold text-blue-600">
+                    {safeFormatDate(journey.from.date || journey.departureDate, 'dd MMMM yyyy')} - <span className="font-black uppercase">{journey.company.name}</span>
+                  </div>
+                </div>
+                <div className="absolute left-[16.5px] top-[40px] bottom-6 w-px bg-gray-200" />
                 
-                {allStops.map((stop, idx) => {
+                {allerStops.map((stop, idx) => {
                   const isFirstOrLast = stop.type === 'DEPARTURE' || stop.type === 'ARRIVAL';
                   return (
                     <div key={idx} className="relative z-10 flex gap-4">
-                      {/* Timeline Dot */}
                       <div className="mt-1 shrink-0 bg-white">
                         <div className={cn(
                           "w-2.5 h-2.5 rounded-full border-2 bg-white flex items-center justify-center relative",
@@ -91,35 +149,62 @@ export default function BookingSidebar({ journey, searchId, passengerCount, serv
                       
                       <div className="flex flex-col gap-0.5">
                         <div className="flex items-center gap-2">
-                          <span className={cn(
-                            "text-sm font-semibold",
-                            isFirstOrLast ? "text-blue-500" : "text-blue-500" // Keep blue for all times matching design
-                          )}>
+                          <span className="text-sm font-semibold text-blue-500 whitespace-nowrap shrink-0">
                             {stop.time.slice(0, 5)}
                           </span>
                           <span className="text-gray-900 text-sm font-semibold">·</span>
                           <span className="text-sm font-semibold text-gray-900">{stop.stationName || stop.cityName}</span>
                         </div>
-                        
-                        {/* Optional extra address info */}
                         {stop.stationAddress && (
-                          <p className="text-xs text-gray-500 mt-0.5">
-                            {stop.stationAddress}
-                          </p>
-                        )}
-                        
-                        {/* Map Link */}
-                        {(stop.latitude && stop.longitude) && (
-                          <button className="flex items-center gap-1.5 mt-2 px-3 py-1.5 rounded-md border border-gray-200 hover:bg-gray-50 transition-colors w-fit text-gray-700">
-                            <Map size={12} className="text-gray-700" />
-                            <span className="text-xs font-medium">Carte</span>
-                          </button>
+                          <p className="text-xs text-gray-500 mt-0.5">{stop.stationAddress}</p>
                         )}
                       </div>
                     </div>
                   );
                 })}
               </div>
+
+              {/* Timeline Section - Retour */}
+              {retourJourney && (
+                <div className="relative pl-3 pb-2 space-y-6 border-t border-gray-50 pt-6">
+                  <div className="flex flex-col gap-1 mb-4">
+                    <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Itinéraire Retour</div>
+                    <div className="text-[13px] font-bold text-orange-600">
+                      {safeFormatDate(retourJourney.from.date || retourJourney.departureDate, 'dd MMMM yyyy')} - <span className="font-black uppercase">{retourJourney.company.name}</span>
+                    </div>
+                  </div>
+                  <div className="absolute left-[16.5px] top-[64px] bottom-6 w-px bg-gray-200" />
+                  
+                  {retourStops.map((stop, idx) => {
+                    const isFirstOrLast = stop.type === 'DEPARTURE' || stop.type === 'ARRIVAL';
+                    return (
+                      <div key={idx} className="relative z-10 flex gap-4">
+                        <div className="mt-1 shrink-0 bg-white">
+                          <div className={cn(
+                            "w-2.5 h-2.5 rounded-full border-2 bg-white flex items-center justify-center relative",
+                            isFirstOrLast ? "border-orange-500" : "border-gray-400"
+                          )}>
+                            {isFirstOrLast && <div className="absolute w-1 h-1 bg-orange-500 rounded-full" />}
+                          </div>
+                        </div>
+                        
+                        <div className="flex flex-col gap-0.5">
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm font-semibold text-orange-500 whitespace-nowrap shrink-0">
+                              {stop.time.slice(0, 5)}
+                            </span>
+                            <span className="text-gray-900 text-sm font-semibold">·</span>
+                            <span className="text-sm font-semibold text-gray-900">{stop.stationName || stop.cityName}</span>
+                          </div>
+                          {stop.stationAddress && (
+                            <p className="text-xs text-gray-500 mt-0.5">{stop.stationAddress}</p>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
           </div>
         )}
       </div>

@@ -1,6 +1,6 @@
 import { Link } from '@tanstack/react-router';
-import { COMPANY_INFO } from '#/lib/constants';
-import { Phone, Instagram, Facebook, Youtube, Linkedin, Twitter } from 'lucide-react';
+import { COMPANY_INFO, NAV_LINKS } from '#/lib/constants';
+import { Phone } from 'lucide-react';
 
 export default function Footer() {
   return (
@@ -23,31 +23,20 @@ export default function Footer() {
               <Phone size={14} />
               <span>{COMPANY_INFO.phone}</span>
             </div>
-            <div className="flex items-center gap-3 mt-3">
-              {[Facebook, Instagram, Youtube, Linkedin, Twitter].map((Icon, i) => (
-                <a
-                  key={i}
-                  href="#"
-                  className="w-8 h-8 rounded-full bg-white border border-gray-border flex items-center justify-center text-gray-body hover:text-primary hover:border-primary transition-colors no-underline"
-                >
-                  <Icon size={14} />
-                </a>
-              ))}
-            </div>
           </div>
 
           {/* Liens Utiles */}
           <div>
             <h4 className="text-sm font-semibold text-dark mb-4">Liens Utiles</h4>
             <ul className="space-y-2">
-              {['Accueil', 'Qui somme nous ?', 'Voyageurs', 'Touristique', 'Messagerie'].map(
+              {NAV_LINKS.map(
                 (item) => (
-                  <li key={item}>
+                  <li key={item.label}>
                     <Link
-                      to="/"
+                      to={item.href}
                       className="text-sm text-gray-body hover:text-primary transition-colors no-underline"
                     >
-                      {item}
+                      {item.label}
                     </Link>
                   </li>
                 ),
@@ -70,7 +59,7 @@ export default function Footer() {
       <div className="border-t border-gray-border">
         <div className="container-app py-4 flex flex-col sm:flex-row items-center justify-between gap-2">
           <p className="text-xs text-gray-body">
-            © 2025 {COMPANY_INFO.name} | Tous droits réservés.
+            © {new Date().getFullYear()} {COMPANY_INFO.name} | Tous droits réservés.
           </p>
           <p className="text-xs text-gray-body">
             Powered by <span className="font-semibold text-primary">marKoub.ma</span>

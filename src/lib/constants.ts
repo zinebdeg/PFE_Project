@@ -45,39 +45,39 @@ export const SERVICES = [
   {
     title: 'Parc',
     description:
-      "La poursuite d'investissement dans le renouvellement de la flotte du parc de transport haut de gamme",
+      "Une flotte moderne et haut de gamme, renouvelée régulièrement pour vous garantir confort et sécurité tout au long de vos trajets.",
     icon: 'bus' as const,
     color: '#10B981',
   },
   {
     title: 'Réseau',
     description:
-      "Notre réseau de lignes de bus interurbaines couvre un large choix de destinations à l'intérieur du Royaume",
+      "Une couverture nationale étendue desservant un large choix de destinations à travers tout le Royaume du Maroc.",
     icon: 'route' as const,
     color: '#EF4444',
   },
   {
     title: 'Tourisme',
     description:
-      "Le transport touristique est un service qui a été spécialement conçu pour mettre à votre disposition nos autocars afin de répondre à vos besoins en location à travers le Maroc.",
+      "Un service de location d'autocars premium, conçu sur-mesure pour vos voyages organisés et excursions de groupe.",
     icon: 'globe' as const,
     color: '#06B6D4',
   },
   {
     title: 'Messagerie',
     description:
-      "Nous mettons à votre disposition un réseau d'agences à travers le Maroc pour vos expéditions, quelque soit la nature de votre marchandise.",
+      "Un service d'expédition rapide et sécurisé, soutenu par un vaste réseau d'agences de proximité partout au Maroc.",
     icon: 'package' as const,
     color: '#8B5CF6',
   },
 ] as const
 
 export const COMPANY_INFO = {
-  name: 'Trans GHAZALA',
+  name: 'Pullman du Sud',
   fullName: 'PULLMAN DU SUD',
   description:
-    "Le groupement professionnel GHAZALA est une société de transport spécialisée dans le transport interurbain de voyageurs, le transport touristique, le transport de marchandises et de messagerie express à travers le territoire marocain.",
-  phone: '05 3000 3000',
-  address: '115 Av Brahim Roudani, Casablanca',
-  email: 'info@ghazal.ma',
+    "La compagnie Pullman du Sud est une société de transport spécialisée dans le transport interurbain de voyageurs, le transport touristique, le transport de marchandises et de messagerie express à travers le territoire marocain.",
+  phone: '+212 5 22 30 30 30',
+  address: '115 Av Brahim Roudani, Casablanca, Maroc',
+  email: 'contact@pullmandusud.ma',
 } as const

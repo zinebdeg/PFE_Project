@@ -19,11 +19,17 @@ import {
 import { cn } from '../../lib/utils';
 
 export const Route = createFileRoute('/booking/$bookingCode')({
+  validateSearch: (search: Record<string, unknown>) => {
+    return {
+      secondCode: (search.secondCode as string) || undefined,
+    };
+  },
   component: BookingConfirmation,
 });
 
 function BookingConfirmation() {
   const { bookingCode } = Route.useParams();
+  const { secondCode } = Route.useSearch();
   const { data: booking, isLoading, error } = useBooking(bookingCode);
   const navigate = useNavigate();
 
@@ -74,11 +80,16 @@ function BookingConfirmation() {
                )}>
                  {booking.status}
                </div>
-               <span className="text-sm font-medium text-gray-500">Code: {booking.code}</span>
+               <span className="text-sm font-medium text-gray-500">
+                 Codes: {booking.code} {secondCode && `& ${secondCode}`}
+               </span>
             </div>
             <h1 className="text-2xl font-bold text-gray-900">
               {isPaid ? 'Réservation Confirmée !' : isCancelled ? 'Trajet Annulé' : 'Confirmation en attente'}
             </h1>
+            {secondCode && (
+              <p className="text-sm text-gray-500 mt-1">Vos deux trajets (Aller et Retour) ont été réservés avec succès.</p>
+            )}
           </div>
           
           <div className="flex gap-3">

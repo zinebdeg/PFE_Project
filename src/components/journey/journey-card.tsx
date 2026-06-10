@@ -25,20 +25,41 @@ export default function JourneyCard({
           <div className="flex items-center gap-1 text-sm text-gray-500 font-medium">
             Prix / 1 <User size={14} />
           </div>
-          <Link 
-            to="/booking/checkout/$journeyId"
-            params={{ journeyId: journey.id.toString() }}
-            search={{ 
-              ...searchParams,
-              searchId 
-            }}
-            className="no-underline"
-          >
-            <Button className="h-9 px-4 text-sm font-bold bg-[#3b82f6] hover:bg-blue-600 text-white rounded-full flex items-center gap-1 shadow-sm transition-all hover:scale-105">
-              {journey.price.total} Dhs
-              <ChevronRight size={16} />
-            </Button>
-          </Link>
+          {searchParams.returnDate && !searchParams.allerJourneyId ? (
+            <Link 
+              to="/search"
+              search={{ 
+                ...searchParams,
+                allerJourneyId: journey.id.toString(),
+                allerSearchId: searchId
+              }}
+              className="no-underline"
+            >
+              <Button className="h-9 px-4 text-sm font-bold bg-[#3b82f6] hover:bg-blue-600 text-white rounded-full flex items-center gap-1 shadow-sm transition-all hover:scale-105">
+                {journey.price.total} Dhs
+                <ChevronRight size={16} />
+              </Button>
+            </Link>
+          ) : (
+            <Link 
+              to="/booking/checkout/$journeyId"
+              params={{ 
+                journeyId: searchParams.allerJourneyId ? searchParams.allerJourneyId : journey.id.toString() 
+              }}
+              search={{ 
+                ...searchParams,
+                allerSearchId: searchParams.allerSearchId || searchId,
+                retourSearchId: searchParams.allerJourneyId ? searchId : undefined,
+                retourJourneyId: searchParams.allerJourneyId ? journey.id.toString() : undefined
+              }}
+              className="no-underline"
+            >
+              <Button className="h-9 px-4 text-sm font-bold bg-[#3b82f6] hover:bg-blue-600 text-white rounded-full flex items-center gap-1 shadow-sm transition-all hover:scale-105">
+                {journey.price.total} Dhs
+                <ChevronRight size={16} />
+              </Button>
+            </Link>
+          )}
         </div>
       </div>
 

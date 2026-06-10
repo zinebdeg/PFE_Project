@@ -1,28 +1,63 @@
-# Rapport Technique — Plateforme de Réservation de Bus "Trans GHAZALA"
+# Rapport de PFE — Plateforme de Réservation de Bus "Pullman du Sud"
 
-## Table des Matières
-
-1. [Vue d&#39;Ensemble du Projet](#1-vue-densemble-du-projet)
-2. [Stack Technique](#2-stack-technique)
-3. [Architecture Globale](#3-architecture-globale)
-4. [Structure du Projet](#4-structure-du-projet)
-5. [Couche API (Backend)](#5-couche-api-backend)
-6. [Couche RPC (Server Functions)](#6-couche-rpc-server-functions)
-7. [Couche Hooks (État &amp; Données)](#7-couche-hooks-état--données)
-8. [Couche UI (Pages &amp; Composants)](#8-couche-ui-pages--composants)
-9. [Logique Métier (Business Logic)](#9-logique-métier-business-logic)
-10. [Documentation API Markoub](#10-documentation-api-markoub)
-11. [Flux de Données](#11-flux-de-données)
-12. [Modèles de Données (TypeScript)](#12-modèles-de-données-typescript)
-13. [Améliorations et Résilience](#13-améliorations-et-résilience-mises-à-jour-récentes)
-14. [Conception UML Formelle](#14-conception-uml-formelle)
-15. [Guide de Préparation à la Soutenance](#15-guide-de-préparation-à-la-soutenance--réunion)
+## REMERCIEMENTS
+*(Rédigez vos remerciements ici à l'attention de vos encadrants et du jury)*
 
 ---
 
-## 1. Vue d'Ensemble du Projet
+## RÉSUMÉ ET ABSTRACT
 
-Cette application est une **plateforme de réservation de billets de bus interurbains** pour le groupement **Trans GHAZALA / PULLMAN DU SUD**, un acteur majeur du transport au Maroc. Elle permet aux utilisateurs de :
+### Résumé
+*(Votre résumé de projet en français)*
+
+### Abstract
+*(Your project abstract in English)*
+
+### ملخص
+*(ملخص مشروعك بالعربية)*
+
+---
+
+## Tables des Matières :
+
+1. [REMERCIEMENTS](#remerciements)
+2. [RÉSUMÉ ET ABSTRACT](#résumé-et-abstract)
+3. [LISTE DES FIGURES ET TABLEAUX](#liste-des-figures-et-tableaux)
+4. [LISTE DES ABRÉVIATIONS](#liste-des-abréviations)
+5. [INTRODUCTION GÉNÉRALE](#introduction-générale)
+6. [CHAPITRE 1 : CONTEXTE GÉNÉRAL DU PROJET](#chapitre-1--contexte-général-du-projet)
+7. [CHAPITRE 2 : ANALYSE ET CONCEPTION](#chapitre-2--analyse-et-conception)
+8. [CHAPITRE 3 : RÉALISATION ET IMPLÉMENTATION](#chapitre-3--réalisation-et-implémentation)
+9. [CONCLUSION GÉNÉRALE](#conclusion-générale)
+10. [BIBLIOGRAPHIE](#bibliographie)
+11. [WEBOGRAPHIE](#webographie)
+12. [ANNEXES](#annexes)
+
+---
+
+## LISTE DES FIGURES ET TABLEAUX
+*(Liste à générer selon vos diagrammes et tableaux)*
+
+---
+
+## LISTE DES ABRÉVIATIONS
+- **API** : Application Programming Interface
+- **RPC** : Remote Procedure Call
+- **SSR** : Server-Side Rendering
+- *(Ajoutez vos autres abréviations)*
+
+---
+
+## INTRODUCTION GÉNÉRALE
+*(Contexte général, problématique, et annonce du plan)*
+
+---
+
+## CHAPITRE 1 : CONTEXTE GÉNÉRAL DU PROJET
+
+### 1.1 Vue d'Ensemble du Projet
+
+Cette application est une **plateforme de réservation de billets de bus interurbains** pour la compagnie **Pullman du Sud**, un acteur majeur du transport au Maroc. Elle permet aux utilisateurs de :
 
 - Rechercher des trajets entre villes marocaines
 - Consulter les horaires, prix et disponibilités
@@ -34,7 +69,9 @@ L'application s'appuie sur l'**API B2B Markoub** (`b2b-api.markoub.dev`) comme b
 
 ---
 
-## 2. Stack Technique
+## CHAPITRE 2 : ANALYSE ET CONCEPTION
+
+### 2.1 Stack Technique
 
 | Couche                    | Technologie              | Version | Rôle                                             |
 | ------------------------- | ------------------------ | ------- | ------------------------------------------------- |
@@ -135,7 +172,9 @@ graph TD
 
 ---
 
-## 4. Structure du Projet
+## CHAPITRE 3 : RÉALISATION ET IMPLÉMENTATION
+
+### 3.1 Structure du Projet
 
 ```
 PFE_Project/
@@ -808,11 +847,125 @@ L'interface de la page de Checkout a été entièrement alignée sur l'identité
 
 ---
 
-## 14. Conception UML Formelle
+## 14. Conception UML Formelle (Diagramme de Classes)
 
-Cette section présente les diagrammes UML standards requis pour la modélisation académique du système d'information.
+Suite aux retours de l'encadrement, le diagramme de classes a été simplifié pour privilégier les **associations** standard (plus flexibles pour une architecture API) et corriger les **cardinalités** pour refléter la réalité métier du transport.
 
-### 14.1 Diagramme des Cas d'Utilisation (Use Case Diagram)
+### 14.1 Diagramme de Classes Corrigé
+
+```mermaid
+classDiagram
+    class Client {
+        +number id
+        +string name
+        +string email
+        +string phone
+        +login()
+        +register()
+    }
+
+    class Booking {
+        +string code
+        +string paymentToken
+        +number totalPrice
+        +string status
+        +confirmPayment()
+        +cancel()
+    }
+
+    class Journey {
+        +number id
+        +string duration
+        +number seatsLeft
+        +string departureDate
+        +string arrivalDate
+        +boolean showSeatMap
+        +getAvailability()
+    }
+
+    class Station {
+        +number id
+        +string cityName
+        +string stationName
+        +string time
+    }
+
+    class Company {
+        +number id
+        +string name
+        +string logo
+    }
+
+    class Bus {
+        +number id
+        +string name
+        +string logo
+    }
+
+    class Ticket {
+        +string code
+        +number seat
+        +number price
+    }
+
+    class SeatMap {
+        +seat grid
+        +seat preSelectedSeats
+        +findSeatSource()
+    }
+
+    class Seat {
+        +string type
+        +string index
+        +number seatNumber
+        +isAvailable()
+    }
+
+    %% Associations et Cardinalités
+    Journey "0..*" --> "1" Company : opéré par
+    Journey "0..*" --> "1" Bus : utilise
+    Journey "1" --> "1" Station : départ (from)
+    Journey "1" --> "1" Station : arrivée (to)
+    Client "1" --> "0..*" Booking : effectue
+    
+    Booking "0..*" --> "1" Journey : réserve
+    Booking "1" --> "1..*" Ticket : contient
+    
+    Ticket "1" --> "1" Seat : assigné à
+    
+    Bus "1" --> "1" SeatMap : possède
+    SeatMap "1" --> "1..*" Seat : contient
+```
+
+### 14.2 Explication des Cardinalités et Relations
+
+*   **Client → Booking (1 : 0..*)** : Un client (l'entité principale réalisant l'action) peut effectuer aucune ou plusieurs réservations. Une réservation est obligatoirement rattachée à un seul client.
+*   **Journey → Company (0..* : 1)** : Une compagnie de transport (ex: Pullman du Sud) peut proposer plusieurs trajets différents, mais un trajet spécifique (une instance de voyage) est opéré par une seule et unique compagnie.
+*   **Journey → Station (1 : 1)** : Pour chaque trajet, on définit précisément **une** station de départ et **une** station d'arrivée. C'est une association de direction.
+*   **Booking → Journey (* : 1)** : Un trajet de bus peut faire l'objet de plusieurs réservations par différents clients. En revanche, dans notre système, une réservation (`Booking`) est liée à un trajet spécifique (pour l'aller ou le retour).
+*   **Booking → Ticket (1 : 1..*)** : Une réservation peut concerner un groupe (plusieurs passagers). Elle contient donc au moins un ticket, ou plusieurs.
+*   **Bus → SeatMap (1 : 1)** : Chaque bus possède une configuration de sièges unique définie par un plan (`SeatMap`).
+
+### 14.3 Focus sur l'Objet `Client` (Acteur Principal)
+
+L'objet **`Client`** a été extrait pour devenir la classe principale du diagramme. Il représente l'acteur central du système : l'utilisateur qui effectue les recherches et les réservations. Au lieu de stocker les informations personnelles (nom, email, téléphone) de manière redondante dans chaque `Booking`, ces données sont désormais centralisées dans la classe `Client`. Cela permet d'avoir un historique clair des réservations par utilisateur et pose les bases d'un futur système d'authentification ou de fidélisation (programme voyageur).
+
+### 14.4 Focus sur l'Objet `Journey` (L'Objet Pivot de l'Inventaire)
+
+L'objet **`Journey`** est le cœur (le pivot) de l'inventaire du système d'information. Contrairement à une simple "ligne de bus" (statique), le `Journey` représente une **occurrence réelle** de voyage.
+
+1.  **Intersection Spatio-Temporelle** : Il fait le lien entre un lieu (Stations) et un moment précis (dates de départ/arrivée).
+2.  **Gestion de la Capacité** : C'est cet objet qui porte l'attribut `seatsLeft`. Il est mis à jour dynamiquement à chaque réservation.
+3.  **Contrôle de Flux** : L'attribut `showSeatMap` détermine si l'application doit déclencher l'interface de sélection interactive ou passer en mode placement automatique.
+4.  **Lien Commercial** : Il agrège les informations du transporteur (`Company`) et du véhicule (`Bus`) pour fournir au passager toutes les informations nécessaires à son choix.
+
+En résumé, sans l'objet `Journey`, le système ne peut pas faire le lien entre la recherche de l'utilisateur (Ville A vers Ville B) et l'inventaire réel des places disponibles.
+
+---
+
+## 15. Diagrammes Complémentaires
+
+### 15.1 Diagramme des Cas d'Utilisation (Use Case Diagram)
 
 Ce diagramme illustre les interactions principales entre l'utilisateur (Client) et le système, ainsi que la dépendance envers le système externe (Markoub API).
 
@@ -821,7 +974,7 @@ usecaseDiagram
     actor "Client (Voyageur)" as Client
     actor "Système Externe (Markoub B2B)" as API
   
-    rectangle "Plateforme Trans GHAZALA" {
+    rectangle "Plateforme Pullman du Sud" {
         usecase "Rechercher un trajet" as UC1
         usecase "Consulter les trajets disponibles" as UC2
         usecase "Sélectionner des sièges" as UC3
@@ -1028,3 +1181,31 @@ Pour corriger ça de façon transparente pour l'utilisateur, j'ai configuré la 
 1. **Création (POST /bookings)** : On envoie les infos du passager et les sièges. L'API Markoub crée la commande et nous renvoie un code de réservation.
 2. **Paiement (POST /bookings/{code}/paid)** : On utilise immédiatement ce code pour valider le paiement (par carte ou espèces).
    Si l'étape 1 réussit mais que l'étape 2 échoue, la réservation reste 'en attente'. Le système est conçu de manière séquentielle (`await`) pour qu'on ne passe à l'étape suivante que si la précédente a été validée par le serveur."
+
+---
+
+## CONCLUSION GÉNÉRALE
+
+*(Bilan global du projet, enseignements tirés, objectifs atteints, et perspectives d'évolution)*
+
+---
+
+## BIBLIOGRAPHIE
+
+1. Exemple Livre : Nom, Prénom. *Titre du livre*. Édition. Lieu : Éditeur, Année.
+2. Exemple Article : Nom, Prénom. "Titre de l'article". *Nom de la revue*, volume, numéro, année, pages.
+
+---
+
+## WEBOGRAPHIE
+
+1. Documentation React JS : https://react.dev
+2. Documentation TanStack Start & Query : https://tanstack.com
+3. Tailwind CSS Framework : https://tailwindcss.com
+4. *(Ajoutez les liens vers les autres documentations utilisées)*
+
+---
+
+## ANNEXES
+
+*(Mettez ici d'autres documents complémentaires, captures d'écrans supplémentaires, ou le manuel utilisateur si nécessaire)*
