@@ -202,3 +202,10 @@ export interface SearchParams {
   nbrOfPassengers: number;
   previousSearchId?: string;
 }
+export interface QuoteRequest {
+  name: string;
+  subject: string;
+  whatsapp: string;
+  email: string;
+  message: string;
+}

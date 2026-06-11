@@ -4,7 +4,7 @@ import { useCities } from '../../hooks/use-cities';
 import type { City } from '../../api/types';
 import { Button } from '../ui/button';
 import { MapPin, Calendar as CalendarIcon, Users, Search } from 'lucide-react';
-import { format, isToday } from 'date-fns';
+import { format, isToday, addDays } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { cn } from '../../lib/utils';
 import { Calendar } from '../ui/calendar';
@@ -17,17 +17,17 @@ interface SearchFormProps {
   initialPassengers?: number;
 }
 
-export default function SearchForm({ 
-  initialFromId = undefined, 
-  initialToId = undefined, 
-  initialDate, 
+export default function SearchForm({
+  initialFromId = undefined,
+  initialToId = undefined,
+  initialDate,
   initialReturnDate,
-  initialPassengers = 1 
+  initialPassengers = 1
 }: SearchFormProps = {}) {
   const navigate = useNavigate();
   // APPEL À L'API :
   const { data: rawCities = [] } = useCities();
-  
+
   // Nettoyage des noms (ex: enlever "(Rabat)" de Temara) et déduplication
   const cities = useMemo(() => {
     const map = new Map<string, City>();
@@ -44,40 +44,64 @@ export default function SearchForm({
     });
     return Array.from(map.values());
   }, [rawCities]);
-  
+
   const [fromId, setFromId] = useState<number | undefined>(initialFromId);
   const [toId, setToId] = useState<number | undefined>(initialToId);
   const [date, setDate] = useState<string>(initialDate || format(new Date(), 'yyyy-MM-dd'));
   const [returnDate, setReturnDate] = useState<string>(initialReturnDate || '');
   const [passengers, setPassengers] = useState(initialPassengers);
-  
+
   const [showFromMenu, setShowFromMenu] = useState(false);
   const [showToMenu, setShowToMenu] = useState(false);
-  
+
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showReturnPicker, setShowReturnPicker] = useState(false);
 
-  // GESTIONNAIRE DE SOUMISSION DU FORMULAIRE :
-  // Quand l'utilisateur clique sur "Trouver mon ticket", on vérifie que les villes
-  // sont sélectionnées, puis on navigue vers la page `/search` en injectant
-  // les critères de recherche dans l'URL (ex: /search?departureCityId=1&arrivalCityId=2&date=...)
+  // Ensure return date is not before departure
+  useEffect(() => {
+    if (returnDate) {
+      const dep = new Date(date);
+      const ret = new Date(returnDate);
+      if (ret < dep) {
+        setReturnDate(format(dep, 'yyyy-MM-dd'));
+      }
+    }
+  }, [date]);
+  // On s'assure que la date de retour, si fournie, est postérieure à la date de départ.
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (!fromId || !toId) return;
-    
+
+    // Convertir les dates en objets Date pour la comparaison
+    const departure = new Date(date);
+    let retDate = returnDate ? new Date(returnDate) : undefined;
+
+    if (retDate) {
+      // Si la date de retour est antérieure à la date de départ, on la corrige
+      if (retDate < departure) {
+        // On met la même date que le départ
+        retDate = departure;
+        setReturnDate(format(retDate, 'yyyy-MM-dd'));
+      }
+    }
+
+    const searchParams: Record<string, any> = {
+      departureCityId: fromId,
+      arrivalCityId: toId,
+      date,
+      nbrOfPassengers: passengers,
+    };
+    if (retDate) {
+      searchParams.returnDate = format(retDate, 'yyyy-MM-dd');
+    }
+    // @ts-ignore
     navigate({
       to: '/search',
-      search: {
-        departureCityId: fromId,
-        arrivalCityId: toId,
-        date,
-        returnDate: returnDate || undefined,
-        nbrOfPassengers: passengers,
-      },
+      search: searchParams,
     });
   };
 
-  const getCityName = (id: number | undefined) => 
+  const getCityName = (id: number | undefined) =>
     cities.find((c: City) => c.id === id)?.name || '';
 
   const [fromSearchText, setFromSearchText] = useState('');
@@ -107,7 +131,7 @@ export default function SearchForm({
       <form onSubmit={handleSearch} className="flex flex-col gap-4">
         {/* Departure City */}
         <div className="relative">
-          <div 
+          <div
             className="flex items-center gap-3 p-4 border border-gray-200 rounded-xl focus-within:border-primary transition-colors cursor-text"
           >
             <MapPin size={20} className="text-gray-500 shrink-0" />
@@ -130,7 +154,7 @@ export default function SearchForm({
               className="w-full bg-transparent outline-none text-sm font-medium text-gray-900 placeholder:text-gray-400"
             />
           </div>
-          
+
           {showFromMenu && (
             <div className="absolute top-full left-0 w-full mt-2 bg-white border border-gray-border shadow-2xl rounded-xl z-50 overflow-hidden fade-in">
               <div className="p-2 border-b border-gray-border bg-gray-light">
@@ -140,13 +164,13 @@ export default function SearchForm({
               </div>
               <div className="max-h-60 overflow-y-auto w-full">
                 {filteredFromCities.map((city: City) => (
-                  <div 
+                  <div
                     key={city.id}
                     onMouseDown={(e) => {
                       e.preventDefault(); // Prevents input from losing focus early
-                      setFromId(city.id); 
+                      setFromId(city.id);
                       setFromSearchText(city.name);
-                      setShowFromMenu(false); 
+                      setShowFromMenu(false);
                     }}
                     className="p-3 text-sm hover:bg-gray-light cursor-pointer flex items-center gap-2"
                   >
@@ -161,7 +185,7 @@ export default function SearchForm({
 
         {/* Arrival City */}
         <div className="relative">
-          <div 
+          <div
             className="flex items-center gap-3 p-4 border border-gray-200 rounded-xl focus-within:border-primary transition-colors cursor-text"
           >
             <MapPin size={20} className="text-gray-500 shrink-0" />
@@ -184,7 +208,7 @@ export default function SearchForm({
               className="w-full bg-transparent outline-none text-sm font-medium text-gray-900 placeholder:text-gray-400"
             />
           </div>
-          
+
           {showToMenu && (
             <div className="absolute top-full left-0 w-full mt-2 bg-white border border-gray-border shadow-2xl rounded-xl z-50 overflow-hidden fade-in">
               <div className="p-2 border-b border-gray-border bg-gray-light">
@@ -194,13 +218,13 @@ export default function SearchForm({
               </div>
               <div className="max-h-60 overflow-y-auto">
                 {filteredToCities.map((city: City) => (
-                  <div 
+                  <div
                     key={city.id}
                     onMouseDown={(e) => {
-                      e.preventDefault(); 
-                      setToId(city.id); 
+                      e.preventDefault();
+                      setToId(city.id);
                       setToSearchText(city.name);
-                      setShowToMenu(false); 
+                      setShowToMenu(false);
                     }}
                     className="p-3 text-sm hover:bg-gray-light cursor-pointer flex items-center gap-2"
                   >
@@ -217,7 +241,7 @@ export default function SearchForm({
         <div className="grid grid-cols-2 gap-4 relative">
           {/* Departure Date */}
           <div className="relative">
-            <div 
+            <div
               onClick={() => { setShowDatePicker(!showDatePicker); setShowReturnPicker(false); setShowFromMenu(false); setShowToMenu(false); }}
               className="flex items-center gap-3 p-4 border border-gray-200 rounded-xl hover:border-primary transition-colors cursor-pointer bg-white"
             >
@@ -230,7 +254,7 @@ export default function SearchForm({
 
           {/* Return Date */}
           <div className="relative">
-            <div 
+            <div
               onClick={() => { setShowReturnPicker(!showReturnPicker); setShowDatePicker(false); setShowFromMenu(false); setShowToMenu(false); }}
               className="flex items-center gap-3 p-4 border border-gray-200 rounded-xl hover:border-primary transition-colors cursor-pointer bg-white"
             >
@@ -244,8 +268,9 @@ export default function SearchForm({
           {/* Popovers relative to the whole dates row */}
           {showDatePicker && (
             <div className="absolute top-full left-[-20px] mt-2 z-[100] animate-in fade-in zoom-in-95 shadow-2xl overflow-visible">
-              <Calendar 
+              <Calendar
                 selectedDate={date ? new Date(date) : undefined}
+                maxDate={returnDate ? new Date(returnDate) : undefined}
                 onSelect={(d) => {
                   setDate(format(d, 'yyyy-MM-dd'));
                   setShowDatePicker(false);
@@ -256,10 +281,13 @@ export default function SearchForm({
 
           {showReturnPicker && (
             <div className="absolute top-full right-0 mt-2 z-[100] animate-in fade-in zoom-in-95 shadow-2xl overflow-visible">
-              <Calendar 
+              <Calendar
                 selectedDate={returnDate ? new Date(returnDate) : undefined}
+                minDate={new Date(date)}
                 onSelect={(d) => {
-                  setReturnDate(format(d, 'yyyy-MM-dd'));
+                  const dep = new Date(date);
+                  const chosen = d < dep ? dep : d;
+                  setReturnDate(format(chosen, 'yyyy-MM-dd'));
                   setShowReturnPicker(false);
                 }}
               />
@@ -270,7 +298,7 @@ export default function SearchForm({
         {/* Passengers */}
         <div className="flex items-center gap-3 p-4 border border-gray-200 rounded-xl hover:border-primary transition-colors cursor-pointer relative">
           <Users size={20} className="text-gray-500 shrink-0" />
-          <select 
+          <select
             value={passengers}
             onChange={(e) => setPassengers(Number(e.target.value))}
             className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
@@ -283,8 +311,8 @@ export default function SearchForm({
         </div>
 
         <div className="pt-2">
-          <Button 
-            type="submit" 
+          <Button
+            type="submit"
             className="w-full h-[52px] text-[15px] font-bold bg-[#3b82f6] hover:bg-blue-600 text-white rounded-full shadow-md transition-all active:scale-[0.98]"
             disabled={!fromId || !toId}
           >

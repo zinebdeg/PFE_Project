@@ -1,6 +1,5 @@
 export const NAV_LINKS = [
   { label: 'Accueil', href: '/' },
-  { label: 'Voyageurs', href: '/voyageurs' },
   { label: 'Touristique', href: '/touristique' },
   { label: 'Messagerie', href: '/messagerie' },
   { label: 'Qui sommes-nous', href: '/about' },

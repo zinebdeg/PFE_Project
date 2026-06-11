@@ -9,7 +9,6 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as VoyageursRouteImport } from './routes/voyageurs'
 import { Route as TouristiqueRouteImport } from './routes/touristique'
 import { Route as SearchRouteImport } from './routes/search'
 import { Route as MessagerieRouteImport } from './routes/messagerie'
@@ -19,11 +18,6 @@ import { Route as JourneyJourneyIdRouteImport } from './routes/journey/$journeyI
 import { Route as BookingBookingCodeRouteImport } from './routes/booking/$bookingCode'
 import { Route as BookingCheckoutJourneyIdRouteImport } from './routes/booking/checkout.$journeyId'
 
-const VoyageursRoute = VoyageursRouteImport.update({
-  id: '/voyageurs',
-  path: '/voyageurs',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const TouristiqueRoute = TouristiqueRouteImport.update({
   id: '/touristique',
   path: '/touristique',
@@ -72,7 +66,6 @@ export interface FileRoutesByFullPath {
   '/messagerie': typeof MessagerieRoute
   '/search': typeof SearchRoute
   '/touristique': typeof TouristiqueRoute
-  '/voyageurs': typeof VoyageursRoute
   '/booking/$bookingCode': typeof BookingBookingCodeRoute
   '/journey/$journeyId': typeof JourneyJourneyIdRoute
   '/booking/checkout/$journeyId': typeof BookingCheckoutJourneyIdRoute
@@ -83,7 +76,6 @@ export interface FileRoutesByTo {
   '/messagerie': typeof MessagerieRoute
   '/search': typeof SearchRoute
   '/touristique': typeof TouristiqueRoute
-  '/voyageurs': typeof VoyageursRoute
   '/booking/$bookingCode': typeof BookingBookingCodeRoute
   '/journey/$journeyId': typeof JourneyJourneyIdRoute
   '/booking/checkout/$journeyId': typeof BookingCheckoutJourneyIdRoute
@@ -95,7 +87,6 @@ export interface FileRoutesById {
   '/messagerie': typeof MessagerieRoute
   '/search': typeof SearchRoute
   '/touristique': typeof TouristiqueRoute
-  '/voyageurs': typeof VoyageursRoute
   '/booking/$bookingCode': typeof BookingBookingCodeRoute
   '/journey/$journeyId': typeof JourneyJourneyIdRoute
   '/booking/checkout/$journeyId': typeof BookingCheckoutJourneyIdRoute
@@ -108,7 +99,6 @@ export interface FileRouteTypes {
     | '/messagerie'
     | '/search'
     | '/touristique'
-    | '/voyageurs'
     | '/booking/$bookingCode'
     | '/journey/$journeyId'
     | '/booking/checkout/$journeyId'
@@ -119,7 +109,6 @@ export interface FileRouteTypes {
     | '/messagerie'
     | '/search'
     | '/touristique'
-    | '/voyageurs'
     | '/booking/$bookingCode'
     | '/journey/$journeyId'
     | '/booking/checkout/$journeyId'
@@ -130,7 +119,6 @@ export interface FileRouteTypes {
     | '/messagerie'
     | '/search'
     | '/touristique'
-    | '/voyageurs'
     | '/booking/$bookingCode'
     | '/journey/$journeyId'
     | '/booking/checkout/$journeyId'
@@ -142,7 +130,6 @@ export interface RootRouteChildren {
   MessagerieRoute: typeof MessagerieRoute
   SearchRoute: typeof SearchRoute
   TouristiqueRoute: typeof TouristiqueRoute
-  VoyageursRoute: typeof VoyageursRoute
   BookingBookingCodeRoute: typeof BookingBookingCodeRoute
   JourneyJourneyIdRoute: typeof JourneyJourneyIdRoute
   BookingCheckoutJourneyIdRoute: typeof BookingCheckoutJourneyIdRoute
@@ -150,13 +137,6 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/voyageurs': {
-      id: '/voyageurs'
-      path: '/voyageurs'
-      fullPath: '/voyageurs'
-      preLoaderRoute: typeof VoyageursRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/touristique': {
       id: '/touristique'
       path: '/touristique'
@@ -222,7 +202,6 @@ const rootRouteChildren: RootRouteChildren = {
   MessagerieRoute: MessagerieRoute,
   SearchRoute: SearchRoute,
   TouristiqueRoute: TouristiqueRoute,
-  VoyageursRoute: VoyageursRoute,
   BookingBookingCodeRoute: BookingBookingCodeRoute,
   JourneyJourneyIdRoute: JourneyJourneyIdRoute,
   BookingCheckoutJourneyIdRoute: BookingCheckoutJourneyIdRoute,
