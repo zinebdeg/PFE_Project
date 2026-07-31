@@ -106,7 +106,7 @@ function BookingPage() {
 
   const [activeSeatSelection, setActiveSeatSelection] = useState<'aller' | 'retour'>('aller');
 
-  const handleProcessBooking = async () => {
+  const handleProcessBooking = () => {
     if (!passengerData.name || !passengerData.email || !passengerData.phone) {
       showErrorToast('Veuillez remplir toutes les informations passager.');
       return;
@@ -128,95 +128,19 @@ function BookingPage() {
       return;
     }
 
-    setIsProcessing(true);
-    setProcessingStep('creating');
+    const amount = ((allerJourney?.price.total ?? 0) + (retourJourney?.price.total || 0)) * searchParams.nbrOfPassengers + 5;
 
-    try {
-      const createAndPay = async (journey: Journey, sId: string, selectedS: string) => {
-        let finalSeats: number[] = [];
-        
-        if (journey.showSeatMap) {
-          if (selectedS) {
-            finalSeats = selectedS.split(',').map(Number);
-          } else {
-            // Auto-assign seats if map exists but none selected
-            const seatMapResponse = await getSeatMap({ data: { journeyId: journey.id, searchId: sId } });
-            
-            const findSeatSource = (obj: any): any => {
-              if (!obj || typeof obj !== 'object') return null;
-              if (Array.isArray(obj.seatMap)) return obj;
-              if (Array.isArray(obj)) {
-                for (const item of obj) {
-                  const found = findSeatSource(item);
-                  if (found) return found;
-                }
-              }
-              if (obj.data) return findSeatSource(obj.data);
-              if (obj.result) return findSeatSource(obj.result);
-              return null;
-            };
-
-            const source = findSeatSource(seatMapResponse);
-            if (source?.seatMap) {
-              const available: number[] = [];
-              source.seatMap.forEach((row: any[]) => row.forEach((s: any) => {
-                if (s?.type === 'available' && s.seatNumber) available.push(s.seatNumber);
-              }));
-              
-              if (available.length >= searchParams.nbrOfPassengers) {
-                finalSeats = available.slice(0, searchParams.nbrOfPassengers);
-              } else {
-                throw new Error(`Désolé, il n'y a plus assez de sièges disponibles pour le trajet vers ${journey.to.cityName}.`);
-              }
-            }
-          }
-        }
-
-        const booking = await createBookingMutation.mutateAsync({
-          journeyId: journey.id.toString(),
-          searchId: sId,
-          name: passengerData.name,
-          email: passengerData.email,
-          phone: passengerData.phone,
-          ...(finalSeats.length > 0 ? { seats: finalSeats } : {}),
-        });
-
-        if (booking?.code) {
-          setProcessingStep('paying');
-          await markPaidMutation.mutateAsync({
-            code: booking.code,
-            paidPrice: booking.totalPrice.toString(),
-            referenceNumber: 'REF-' + Math.random().toString(36).substring(7).toUpperCase(),
-            additionalInfo: `Paiement ${paymentMethod === 'card' ? 'par Carte' : 'en Espèces'} - Aller-Retour`,
-          });
-          return booking.code;
-        }
-        throw new Error("Une erreur est survenue lors de la création de la réservation.");
-      };
-
-      // ÉTAPE 1 : ALLER
-      const allerCode = await createAndPay(allerJourney, searchResult?.searchId || allerSearchId, selectedSeat);
-      
-      // ÉTAPE 2 : RETOUR (Optionnel)
-      let retourCode = null;
-      if (retourJourney) {
-        retourCode = await createAndPay(retourJourney, retourSearchResult?.searchId || retourSearchId, selectedReturnSeat);
-      }
-
-      // Redirection vers la page de confirmation
-      navigate({
-        to: '/booking/$bookingCode',
-        params: { bookingCode: allerCode },
-        search: retourCode ? { secondCode: retourCode } : {},
-      });
-
-    } catch (e: any) {
-      showErrorToast(e.message || 'Une erreur est survenue lors de la réservation. Veuillez réessayer.');
-      console.error(e);
-    } finally {
-      setIsProcessing(false);
-      setProcessingStep(null);
-    }
+    navigate({
+      to: '/booking/payment/$journeyId',
+      params: { journeyId },
+      search: {
+        ...searchParams,
+        amount: amount.toString(),
+        passengerName: passengerData.name,
+        passengerEmail: passengerData.email,
+        passengerPhone: passengerData.phone,
+      },
+    });
   };
 
   if (isLoading && !allerJourney) {

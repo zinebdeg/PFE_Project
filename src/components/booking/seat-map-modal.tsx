@@ -39,8 +39,8 @@ const Wheel = () => (
 const colors = [
   {
     type: "selected",
-    color1: "#F97316", // orange-500
-    color2: "#EA580C", // orange-600
+    color1: "#2563EB", // blue-500
+    color2: "#1D4ED8", // blue-600
     color3: "#F97316",
     border: "#FFFFFF",
   },
@@ -360,7 +360,7 @@ export default function SeatMapModal({
             <span className="text-xs font-medium text-gray-600">Siège disponible</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-4 h-4 rounded-sm bg-orange-500" />
+            <div className="w-4 h-4 rounded-sm bg-blue-500" />
             <span className="text-xs font-medium text-gray-600">Votre siège sélectionné</span>
           </div>
         </div>

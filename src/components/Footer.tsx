@@ -1,8 +1,14 @@
-import { Link } from '@tanstack/react-router';
+import { Link, useRouterState } from '@tanstack/react-router';
 import { COMPANY_INFO, NAV_LINKS } from '#/lib/constants';
 import { Phone } from 'lucide-react';
 
 export default function Footer() {
+  const router = useRouterState();
+
+  if (router.location.pathname.startsWith('/booking/payment')) {
+    return null;
+  }
+
   return (
     <footer className="bg-gray-light border-t border-gray-border mt-20">
       <div className="container-app py-12">

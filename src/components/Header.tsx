@@ -1,10 +1,16 @@
-import { Link } from '@tanstack/react-router';
+import { Link, useRouterState } from '@tanstack/react-router';
 import { NAV_LINKS } from '#/lib/constants';
 import { Menu, X } from 'lucide-react';
 import { useState } from 'react';
 
 export default function Header() {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const router = useRouterState();
+
+  // Hide the global navigation header on the checkout/payment simulation screen
+  if (router.location.pathname.startsWith('/booking/payment')) {
+    return null;
+  }
 
   return (
     <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-sm">

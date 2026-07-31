@@ -90,7 +90,7 @@ export default function BookingSidebar({ journey, retourJourney, searchId, passe
                 </div>
                 <div className="flex flex-col">
                   <div className="flex items-center gap-2">
-                    <span className="bg-orange-50 text-orange-600 text-[10px] font-bold px-2 py-0.5 rounded uppercase">Retour</span>
+                    <span className="bg-blue-50 text-blue-600 text-[10px] font-bold px-2 py-0.5 rounded uppercase">Retour</span>
                     <span className="font-semibold text-[13px] text-gray-900">{retourJourney.from.cityName} → {retourJourney.to.cityName}</span>
                   </div>
                   <div className="flex flex-col gap-0.5 mt-1">
@@ -169,7 +169,7 @@ export default function BookingSidebar({ journey, retourJourney, searchId, passe
                 <div className="relative pl-3 pb-2 space-y-6 border-t border-gray-50 pt-6">
                   <div className="flex flex-col gap-1 mb-4">
                     <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Itinéraire Retour</div>
-                    <div className="text-[13px] font-bold text-orange-600">
+                    <div className="text-[13px] font-bold text-blue-600">
                       {safeFormatDate(retourJourney.from.date || retourJourney.departureDate, 'dd MMMM yyyy')} - <span className="font-black uppercase">{retourJourney.company.name}</span>
                     </div>
                   </div>
@@ -182,15 +182,15 @@ export default function BookingSidebar({ journey, retourJourney, searchId, passe
                         <div className="mt-1 shrink-0 bg-white">
                           <div className={cn(
                             "w-2.5 h-2.5 rounded-full border-2 bg-white flex items-center justify-center relative",
-                            isFirstOrLast ? "border-orange-500" : "border-gray-400"
+                            isFirstOrLast ? "border-blue-500" : "border-gray-400"
                           )}>
-                            {isFirstOrLast && <div className="absolute w-1 h-1 bg-orange-500 rounded-full" />}
+                            {isFirstOrLast && <div className="absolute w-1 h-1 bg-blue-500 rounded-full" />}
                           </div>
                         </div>
                         
                         <div className="flex flex-col gap-0.5">
                           <div className="flex items-center gap-2">
-                            <span className="text-sm font-semibold text-orange-500 whitespace-nowrap shrink-0">
+                            <span className="text-sm font-semibold text-blue-500 whitespace-nowrap shrink-0">
                               {stop.time.slice(0, 5)}
                             </span>
                             <span className="text-gray-900 text-sm font-semibold">·</span>

@@ -84,22 +84,22 @@ function SearchResults() {
             {/* Stepper */}
             <div className="mb-10 flex items-center justify-center">
               <div className="flex items-center gap-4 text-[13px] font-bold">
-                <div className="flex items-center gap-2 text-orange-500">
-                  <div className="w-6 h-6 rounded-full bg-orange-500 text-white flex items-center justify-center text-[10px]">✓</div>
+                <div className="flex items-center gap-2 text-blue-600">
+                  <div className="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center text-[10px]">✓</div>
                   <span>Choisir l'itinéraire</span>
                 </div>
                 <div className="w-12 h-[1px] bg-gray-200"></div>
                 
-                <div className={cn("flex items-center gap-2", !isSelectingRetour ? "text-orange-500" : "text-orange-500")}>
-                  <div className={cn("w-6 h-6 rounded-full flex items-center justify-center text-[10px]", !isSelectingRetour ? "bg-orange-500 text-white" : "bg-orange-500 text-white")}>
+                <div className={cn("flex items-center gap-2", !isSelectingRetour ? "text-blue-600" : "text-blue-600")}>
+                  <div className={cn("w-6 h-6 rounded-full flex items-center justify-center text-[10px]", !isSelectingRetour ? "bg-blue-600 text-white" : "bg-blue-600 text-white")}>
                     {isSelectingRetour ? "✓" : "2"}
                   </div>
                   <span>Aller</span>
                 </div>
                 <div className="w-12 h-[1px] bg-gray-200"></div>
 
-                <div className={cn("flex items-center gap-2", isSelectingRetour ? "text-orange-500" : "text-gray-400")}>
-                  <div className={cn("w-6 h-6 rounded-full flex items-center justify-center text-[10px]", isSelectingRetour ? "bg-orange-500 text-white" : "bg-gray-100 text-gray-400")}>
+                <div className={cn("flex items-center gap-2", isSelectingRetour ? "text-blue-600" : "text-gray-400")}>
+                  <div className={cn("w-6 h-6 rounded-full flex items-center justify-center text-[10px]", isSelectingRetour ? "bg-blue-600 text-white" : "bg-gray-100 text-gray-400")}>
                     3
                   </div>
                   <span>Retour</span>

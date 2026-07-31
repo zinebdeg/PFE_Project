@@ -16,6 +16,7 @@ import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as JourneyJourneyIdRouteImport } from './routes/journey/$journeyId'
 import { Route as BookingBookingCodeRouteImport } from './routes/booking/$bookingCode'
+import { Route as BookingPaymentJourneyIdRouteImport } from './routes/booking/payment.$journeyId'
 import { Route as BookingCheckoutJourneyIdRouteImport } from './routes/booking/checkout.$journeyId'
 
 const TouristiqueRoute = TouristiqueRouteImport.update({
@@ -53,6 +54,11 @@ const BookingBookingCodeRoute = BookingBookingCodeRouteImport.update({
   path: '/booking/$bookingCode',
   getParentRoute: () => rootRouteImport,
 } as any)
+const BookingPaymentJourneyIdRoute = BookingPaymentJourneyIdRouteImport.update({
+  id: '/booking/payment/$journeyId',
+  path: '/booking/payment/$journeyId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const BookingCheckoutJourneyIdRoute =
   BookingCheckoutJourneyIdRouteImport.update({
     id: '/booking/checkout/$journeyId',
@@ -69,6 +75,7 @@ export interface FileRoutesByFullPath {
   '/booking/$bookingCode': typeof BookingBookingCodeRoute
   '/journey/$journeyId': typeof JourneyJourneyIdRoute
   '/booking/checkout/$journeyId': typeof BookingCheckoutJourneyIdRoute
+  '/booking/payment/$journeyId': typeof BookingPaymentJourneyIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -79,6 +86,7 @@ export interface FileRoutesByTo {
   '/booking/$bookingCode': typeof BookingBookingCodeRoute
   '/journey/$journeyId': typeof JourneyJourneyIdRoute
   '/booking/checkout/$journeyId': typeof BookingCheckoutJourneyIdRoute
+  '/booking/payment/$journeyId': typeof BookingPaymentJourneyIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -90,6 +98,7 @@ export interface FileRoutesById {
   '/booking/$bookingCode': typeof BookingBookingCodeRoute
   '/journey/$journeyId': typeof JourneyJourneyIdRoute
   '/booking/checkout/$journeyId': typeof BookingCheckoutJourneyIdRoute
+  '/booking/payment/$journeyId': typeof BookingPaymentJourneyIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -102,6 +111,7 @@ export interface FileRouteTypes {
     | '/booking/$bookingCode'
     | '/journey/$journeyId'
     | '/booking/checkout/$journeyId'
+    | '/booking/payment/$journeyId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -112,6 +122,7 @@ export interface FileRouteTypes {
     | '/booking/$bookingCode'
     | '/journey/$journeyId'
     | '/booking/checkout/$journeyId'
+    | '/booking/payment/$journeyId'
   id:
     | '__root__'
     | '/'
@@ -122,6 +133,7 @@ export interface FileRouteTypes {
     | '/booking/$bookingCode'
     | '/journey/$journeyId'
     | '/booking/checkout/$journeyId'
+    | '/booking/payment/$journeyId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -133,6 +145,7 @@ export interface RootRouteChildren {
   BookingBookingCodeRoute: typeof BookingBookingCodeRoute
   JourneyJourneyIdRoute: typeof JourneyJourneyIdRoute
   BookingCheckoutJourneyIdRoute: typeof BookingCheckoutJourneyIdRoute
+  BookingPaymentJourneyIdRoute: typeof BookingPaymentJourneyIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -186,6 +199,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BookingBookingCodeRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/booking/payment/$journeyId': {
+      id: '/booking/payment/$journeyId'
+      path: '/booking/payment/$journeyId'
+      fullPath: '/booking/payment/$journeyId'
+      preLoaderRoute: typeof BookingPaymentJourneyIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/booking/checkout/$journeyId': {
       id: '/booking/checkout/$journeyId'
       path: '/booking/checkout/$journeyId'
@@ -205,6 +225,7 @@ const rootRouteChildren: RootRouteChildren = {
   BookingBookingCodeRoute: BookingBookingCodeRoute,
   JourneyJourneyIdRoute: JourneyJourneyIdRoute,
   BookingCheckoutJourneyIdRoute: BookingCheckoutJourneyIdRoute,
+  BookingPaymentJourneyIdRoute: BookingPaymentJourneyIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

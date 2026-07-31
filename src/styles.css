@@ -3,9 +3,9 @@
 
 @theme {
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
-  --color-primary: #F97316;
-  --color-primary-hover: #EA580C;
-  --color-primary-light: #FFF7ED;
+  --color-primary: #2563EB;
+  --color-primary-hover: #1D4ED8;
+  --color-primary-light: #EBF4FF;
   --color-dark: #1F2937;
   --color-gray-body: #6B7280;
   --color-gray-light: #F3F4F6;
@@ -108,8 +108,8 @@ html {
 }
 
 .seat-selected {
-  background-color: #F97316;
-  border: 2px solid #EA580C;
+  background-color: #2563EB;
+  border: 2px solid #1D4ED8;
   color: white;
 }
 
