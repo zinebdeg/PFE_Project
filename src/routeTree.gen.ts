@@ -15,7 +15,6 @@ import { Route as MessagerieRouteImport } from './routes/messagerie'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as JourneyJourneyIdRouteImport } from './routes/journey/$journeyId'
-import { Route as BookingBookingCodeRouteImport } from './routes/booking/$bookingCode'
 import { Route as BookingPaymentJourneyIdRouteImport } from './routes/booking/payment.$journeyId'
 import { Route as BookingCheckoutJourneyIdRouteImport } from './routes/booking/checkout.$journeyId'
 
@@ -49,11 +48,6 @@ const JourneyJourneyIdRoute = JourneyJourneyIdRouteImport.update({
   path: '/journey/$journeyId',
   getParentRoute: () => rootRouteImport,
 } as any)
-const BookingBookingCodeRoute = BookingBookingCodeRouteImport.update({
-  id: '/booking/$bookingCode',
-  path: '/booking/$bookingCode',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const BookingPaymentJourneyIdRoute = BookingPaymentJourneyIdRouteImport.update({
   id: '/booking/payment/$journeyId',
   path: '/booking/payment/$journeyId',
@@ -72,7 +66,6 @@ export interface FileRoutesByFullPath {
   '/messagerie': typeof MessagerieRoute
   '/search': typeof SearchRoute
   '/touristique': typeof TouristiqueRoute
-  '/booking/$bookingCode': typeof BookingBookingCodeRoute
   '/journey/$journeyId': typeof JourneyJourneyIdRoute
   '/booking/checkout/$journeyId': typeof BookingCheckoutJourneyIdRoute
   '/booking/payment/$journeyId': typeof BookingPaymentJourneyIdRoute
@@ -83,7 +76,6 @@ export interface FileRoutesByTo {
   '/messagerie': typeof MessagerieRoute
   '/search': typeof SearchRoute
   '/touristique': typeof TouristiqueRoute
-  '/booking/$bookingCode': typeof BookingBookingCodeRoute
   '/journey/$journeyId': typeof JourneyJourneyIdRoute
   '/booking/checkout/$journeyId': typeof BookingCheckoutJourneyIdRoute
   '/booking/payment/$journeyId': typeof BookingPaymentJourneyIdRoute
@@ -95,7 +87,6 @@ export interface FileRoutesById {
   '/messagerie': typeof MessagerieRoute
   '/search': typeof SearchRoute
   '/touristique': typeof TouristiqueRoute
-  '/booking/$bookingCode': typeof BookingBookingCodeRoute
   '/journey/$journeyId': typeof JourneyJourneyIdRoute
   '/booking/checkout/$journeyId': typeof BookingCheckoutJourneyIdRoute
   '/booking/payment/$journeyId': typeof BookingPaymentJourneyIdRoute
@@ -108,7 +99,6 @@ export interface FileRouteTypes {
     | '/messagerie'
     | '/search'
     | '/touristique'
-    | '/booking/$bookingCode'
     | '/journey/$journeyId'
     | '/booking/checkout/$journeyId'
     | '/booking/payment/$journeyId'
@@ -119,7 +109,6 @@ export interface FileRouteTypes {
     | '/messagerie'
     | '/search'
     | '/touristique'
-    | '/booking/$bookingCode'
     | '/journey/$journeyId'
     | '/booking/checkout/$journeyId'
     | '/booking/payment/$journeyId'
@@ -130,7 +119,6 @@ export interface FileRouteTypes {
     | '/messagerie'
     | '/search'
     | '/touristique'
-    | '/booking/$bookingCode'
     | '/journey/$journeyId'
     | '/booking/checkout/$journeyId'
     | '/booking/payment/$journeyId'
@@ -142,7 +130,6 @@ export interface RootRouteChildren {
   MessagerieRoute: typeof MessagerieRoute
   SearchRoute: typeof SearchRoute
   TouristiqueRoute: typeof TouristiqueRoute
-  BookingBookingCodeRoute: typeof BookingBookingCodeRoute
   JourneyJourneyIdRoute: typeof JourneyJourneyIdRoute
   BookingCheckoutJourneyIdRoute: typeof BookingCheckoutJourneyIdRoute
   BookingPaymentJourneyIdRoute: typeof BookingPaymentJourneyIdRoute
@@ -192,13 +179,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof JourneyJourneyIdRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/booking/$bookingCode': {
-      id: '/booking/$bookingCode'
-      path: '/booking/$bookingCode'
-      fullPath: '/booking/$bookingCode'
-      preLoaderRoute: typeof BookingBookingCodeRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/booking/payment/$journeyId': {
       id: '/booking/payment/$journeyId'
       path: '/booking/payment/$journeyId'
@@ -222,7 +202,6 @@ const rootRouteChildren: RootRouteChildren = {
   MessagerieRoute: MessagerieRoute,
   SearchRoute: SearchRoute,
   TouristiqueRoute: TouristiqueRoute,
-  BookingBookingCodeRoute: BookingBookingCodeRoute,
   JourneyJourneyIdRoute: JourneyJourneyIdRoute,
   BookingCheckoutJourneyIdRoute: BookingCheckoutJourneyIdRoute,
   BookingPaymentJourneyIdRoute: BookingPaymentJourneyIdRoute,

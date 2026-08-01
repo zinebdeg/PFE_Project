@@ -60,7 +60,9 @@ export async function apiRequest<T>(
       });
 
       if (res.ok) {
-        return (await res.json()) as T;
+        const data = await res.json();
+        console.log(`[API] SUCCESS ${method} ${url} - response type: ${Array.isArray(data) ? 'array' : typeof data}, size: ${Array.isArray(data) ? data.length : 'N/A'}`);
+        return data as T;
       }
 
       // Si c'est une erreur de surcharge (429) ou une erreur serveur interne (500+),
@@ -72,6 +74,8 @@ export async function apiRequest<T>(
         await sleep(1000 * Math.pow(2, attempt));
         continue;
       }
+
+      console.error(`[API ERROR LOG] GET ${url} a échoué avec le code : ${res.status} ${res.statusText}`);
 
       const errorBody = await res.json().catch(() => ({}));
       throw new ApiError(

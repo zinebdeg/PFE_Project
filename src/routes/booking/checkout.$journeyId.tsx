@@ -113,7 +113,10 @@ function BookingPage() {
     }
 
     const validateSeats = (journey: Journey | undefined, selected: string) => {
-      if (journey?.showSeatMap && selected) {
+      if (journey?.showSeatMap) {
+        if (!selected) {
+          return `Veuillez sélectionner un siège pour le trajet ${journey.from.cityName} → ${journey.to.cityName}.`;
+        }
         const count = selected.split(',').filter(Boolean).length;
         if (count !== searchParams.nbrOfPassengers) {
           return `Veuillez sélectionner exactement ${searchParams.nbrOfPassengers} siège(s) pour le trajet ${journey.from.cityName} → ${journey.to.cityName}.`;

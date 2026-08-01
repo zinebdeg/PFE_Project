@@ -1,7 +1,9 @@
 import { useNavigate, useSearch, useParams, createFileRoute } from '@tanstack/react-router';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useJourneySearch } from '../../hooks/use-journeys';
 import { useCreateBooking, useMarkBookingPaid } from '../../hooks/use-booking';
+import { sendBookingEmail } from '../../rpc/send-booking-email';
+
 
 export const Route = createFileRoute('/booking/payment/$journeyId')({
   validateSearch: (search: Record<string, unknown>) => {
@@ -89,13 +91,14 @@ function PaymentPage() {
 
     try {
       // Étape 1 : Créer la réservation via l'API Markoub
+      // On utilise le searchId récent (searchResult?.searchId) car Markoub expire l'ancien lors d'une nouvelle recherche
       const booking = await createBookingMutation.mutateAsync({
         journeyId: journeyId,
-        searchId: searchParams.allerSearchId,
+        searchId: searchResult?.searchId || searchParams.allerSearchId,
         name: searchParams.passengerName,
         email: searchParams.passengerEmail,
         phone: searchParams.passengerPhone,
-        seats: searchParams.selectedSeat ? searchParams.selectedSeat.split(',').map(Number) : undefined,
+        seats: searchParams.selectedSeat ? searchParams.selectedSeat.split(',').map(Number) : [],
       });
 
       const bookingCode = typeof booking === 'string' ? booking : booking.code;
@@ -113,16 +116,30 @@ function PaymentPage() {
 
       console.log('[PAIEMENT] Réservation marquée comme payée via API, ref:', referenceNumber);
 
-      setPaymentSuccess(true);
-      
-      // Naviguer vers la page de confirmation
-      setTimeout(() => {
-        navigate({
-          to: '/booking/$bookingCode',
-          params: { bookingCode: bookingCode },
+      // Étape 3 : Envoyer l'email de confirmation au voyageur
+      try {
+        await sendBookingEmail({
+          data: {
+            email: searchParams.passengerEmail,
+            name: searchParams.passengerName,
+            bookingCode: bookingCode,
+            from: allerJourney?.from.cityName || 'Départ',
+            to: allerJourney?.to.cityName || 'Arrivée',
+            date: allerJourney?.departureDate || searchParams.date,
+            departureTime: allerJourney?.departureTime || '--:--',
+            amount: amount,
+            seats: searchParams.selectedSeat || 'N/A',
+          },
         });
-      }, 1500);
+        console.log('[EMAIL] Email de confirmation envoyé à', searchParams.passengerEmail);
+      } catch (emailErr) {
+        // L'email ne bloque pas la confirmation
+        console.warn('[EMAIL] Échec envoi email (non bloquant):', emailErr);
+      }
 
+      setPaymentSuccess(true);
+      setIsProcessing(false);
+      // On ne redirige plus, on laisse l'utilisateur sur la page de succès
     } catch (err: any) {
       console.error('[PAIEMENT] Erreur API:', err);
       alert(err.message || 'Une erreur est survenue lors du paiement. Veuillez réessayer.');
@@ -145,13 +162,22 @@ function PaymentPage() {
   if (paymentSuccess) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 text-center p-6">
-        <div className="w-20 h-20 rounded-full bg-green-100 flex items-center justify-center mb-6">
-          <svg className="w-10 h-10 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div className="w-24 h-24 rounded-full bg-green-100 flex items-center justify-center mb-6 animate-in zoom-in duration-500">
+          <svg className="w-12 h-12 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
           </svg>
         </div>
-        <h4 className="text-xl font-bold text-gray-800 mb-2">Paiement Réussi</h4>
-        <p className="text-sm text-gray-500 font-medium">Génération de votre billet en cours...</p>
+        <h4 className="text-2xl font-bold text-gray-800 mb-2">Paiement Validé ! 🎉</h4>
+        <p className="text-base text-gray-600 font-medium mb-1">Votre réservation a été confirmée avec succès.</p>
+        <p className="text-sm text-blue-600 font-semibold mb-8">
+          Votre billet a été envoyé par email à <strong>{searchParams.passengerEmail}</strong>
+        </p>
+        <button 
+          onClick={() => navigate({ to: '/' })}
+          className="px-8 py-3 bg-dark hover:bg-black text-white font-bold rounded-xl transition-colors"
+        >
+          Retour à l'accueil
+        </button>
       </div>
     );
   }
